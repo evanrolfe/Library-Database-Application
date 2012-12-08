@@ -7,7 +7,7 @@ public class Copy
 	public String book_isbn;
 	public String periodical_issn;
 
-	private Item item;
+	public Item item;
 
 	public Copy(String deweyIndex, boolean referenceOnly, Item item)
 	{
@@ -30,19 +30,39 @@ public class Copy
 		return item;
 	}
 
-	public ArrayList<Loan> getLoans()
+	public boolean onLoan()
 	{
-		ArrayList<Loan> loans = Database.find_loans_by_deweyid(this.deweyIndex);
-		return loans;
+		ArrayList<Loan> loans = this.getLoans();
+
+		if(loans.size() > 0)
+		{
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	public Loan getLoans()
+	{
+		Loan loan = null;
+		try {
+			loan = Database.find_loans_by_deweyid(this.deweyIndex);
+			return loan;
+		} 
+		catch (DataNotFoundException e) 
+		{
+			// TODO 
+		}
+		return loan;
 	}
 
 	public String toString()
 	{
 		if(this.item.getType() == "Book")
 		{
-			return "B: "+this.deweyIndex+"\t #Loans: "+this.getLoans().size();
+			return "B: "+this.deweyIndex+"\t ISBN: "+this.item.isbn+"\t is it on loan? "+this.onLoan();
 		}else{
-			return "P: "+this.deweyIndex+"\t #Loans: "+this.getLoans().size();
+			return "P: "+this.deweyIndex+"\t ISSN: "+this.item.issn+"\t is it on loan? "+this.onLoan();
 		}
 	}
 }

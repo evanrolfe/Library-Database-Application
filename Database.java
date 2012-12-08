@@ -32,12 +32,19 @@ public class Database
 	 * @param id
 	 * @return Borrower
 	 */
-	public static Borrower find_borrowers(int id)
+	public static Borrower find_borrower(int id)
 	{
-		//EXAMPLE BY EVAN (ONLY FOR TESTING)
-		Borrower result = new Borrower(3, "Jake", "Grover", "jg@hotmail.com");
+		ArrayList<Borrower> borrowers = Database.find_borrowers();
 
-		return result;
+		for(int i=0; i<borrowers.size(); i++)
+		{
+			if(borrowers.get(i).id == id)
+			{
+				return borrowers.get(i);
+			}
+		}
+
+		return borrowers.get(0);
 	}
 
 	/**
@@ -90,8 +97,8 @@ public class Database
 	public static ArrayList<Loan> find_loans()
 	{
 		ArrayList<Loan> loans = new ArrayList<Loan>();
-		ArrayList<Borrower> borrowers = Borrowers.find_all();
-		ArrayList<Item> items = Items.find_all();
+		ArrayList<Borrower> borrowers = Database.find_borrowers();
+		ArrayList<Copy> items = Database.find_copies();
 
 		Date today = new Date();
 
@@ -130,27 +137,97 @@ public class Database
 	}
 
 	/**
-	 * Return all LOANS in the database belonging to user with id
+	 * Return all LOANS in the database with a dewey id
 	 *
-	 * @param id	the id of the borrower 
+	 * @param id	the dewey id 
 	 * @return ArrayList<Loan>
 	 */
-	public static ArrayList<Loan> find_loans_by_deweyid(String id)
+	public static Loan find_loans_by_deweyid(String id) throws DataNotFoundException
 	{
 		ArrayList<Loan> all_loans = Database.find_loans();
-		
-		ArrayList<Loan> result = new ArrayList<Loan>();
+		Loan loan = null;
 
 		for(int i=0; i<all_loans.size(); i++)
 		{
-			if(all_loans.get(i).deweyID == id)
+			if(all_loans.get(i).deweyID.equals(id))
 			{
-				result.add(all_loans.get(i));
+				loan = all_loans.get(i);
 			}
 		}
+		
+		if (loan == null)
+		{
+			throw new DataNotFoundException("The copy with this dewey number is not on loan.");
+		}
 
-		return result;		
+		return loan;		
 	}
+
+	/**
+	 * Creates a new loan of a Copy to a Borrower, subject to rules that:
+	 *	1. Copy is not reference only
+	 * 	2. Copy is not already on loan
+	 * 	3. Borrower has less than six copies currently on loan
+	 * 	4. Borrower has no overdue loans
+	 *	5. Copy is not reserved by another borrower
+	 * ALSO: If the borrower is first in the queue of reservations then the loan will be issued and the reservation deleted
+	 *
+	 * @param Copy 
+	 * @param Borrower 
+	 */
+	public static void issue_loan(Copy copy, Borrower borrower) throws LoanException, Exception
+	{
+		//1.
+		if(copy.referenceOnly == true)
+			throw new LoanException("That copy  is marked for reference only!");
+
+		//2.
+		if(copy.getLoans() != null)
+			throw new LoanException("That copy is already on loan!");		
+
+		//3.
+		if(borrower.getLoans().size() > 5)
+			throw new LoanException("The borrower has reached their limit of six loans!");
+		
+		//4.
+		if(borrower.hasLoansOverDue() == true)
+			throw new LoanException("The borrower has over due loans!");
+
+		//5.
+		//TODO: allow it if the borrower has reserved it and is first in the queue
+		if(copy.item.isReserved() == true)
+			throw new LoanException("That copy has already been reserved by another borrower!");
+
+		//MYSQL: insert the loan
+	}
+
+/**
+ * Renew an existing Loan
+ * @param Loan the loan to be renewed
+ * @return Boolean was the loan renewed?
+ */
+	public static void renew_loan(Loan loan) throws LoanException, Exception
+	{
+		//1. check copy has not been recalled
+		//TODO: check that copy exists
+
+		//2. check Borrower has no overdue loans
+		Borrower b = Database.find_borrower(loan.borrower_id);
+		if(b.hasLoansOverDue()==true)
+			throw new LoanException("The borrower has over due loans!");
+	}
+
+/**
+ * Discharge an existing loan
+ * @param Loan the loan to be deleted
+ * @return Boolean was the loan deleted?
+ */
+	public static void delete_loan(Loan loan)
+	{
+		//If the Loan is overdue then there must be no fines due to be paid for the Loan
+
+	}
+
 //==============================================================
 // ITEMS METHODS
 //==============================================================
@@ -171,9 +248,9 @@ public class Database
 		items.add(new Item("0-000000-00-4", "Beyond Good and Evil", "Friedrich Nietzsche", "Penguin", new Date()));
 
 		//Periodicals
-		items.add(new Item("0-000000-00-1", "Harvard Medical Review", 29, 1, "Harvard Press", new Date()));
-		items.add(new Item("0-000000-00-2", "Oxford Mathematics", 69, 2, "Oxford Press", new Date()));
-		items.add(new Item("0-000000-00-3", "Modern Physics", 1, 1, "Oxford Press", new Date()));
+		items.add(new Item("0-330000-00-1", "Harvard Medical Review", 29, 1, "Harvard Press", new Date()));
+		items.add(new Item("0-777000-00-2", "Oxford Mathematics", 69, 2, "Oxford Press", new Date()));
+		items.add(new Item("0-666000-00-3", "Modern Physics", 1, 1, "Oxford Press", new Date()));
 
 		return items;
 	}
@@ -181,12 +258,33 @@ public class Database
 	/**
 	 * Return all items in the database which match the search criteria
 	 *
-	 * @param id	the id of the borrower 
+	 * @param Hashtable	the search parameters i.e. Hashtable: {"author" => "J.K. Rowling", "title" => "Harry Potter"}
 	 * @return ArrayList<Loan>
 	 */
-	public static ArrayList<Item> find(Hashtable params) throws InvalidArgumentException
+	public static ArrayList<Item> find_items(Hashtable params) throws InvalidArgumentException
 	{
+		//1. Instantiate result arraylist
 		ArrayList<Item> result = Database.find_items();
+
+		Set set = params.entrySet();
+		Iterator it = set.iterator();
+
+		//1. Check that the right input has been given i.e. it is either a valid Book field or a valid Periodical field
+		String[] book_fields = new String[] { "isbn", "title", "author", "publisher", "date" };
+		Arrays.sort(book_fields);
+		String[] periodical_fields = new String[] { "issn", "title", "volumne","number", "publisher", "date" };
+		Arrays.sort(periodical_fields);
+
+		while(it.hasNext())
+		{			
+			Map.Entry row = (Map.Entry) it.next();
+
+			//If the search field is valid for neither books nor periodicals then throw exception
+			if(Arrays.binarySearch(book_fields, row.getKey()) < 0 && Arrays.binarySearch(periodical_fields, row.getKey()) < 0)
+				throw new InvalidArgumentException("The search field you have entered: '"+row.getKey()+"' is not a valid borrower field!");
+
+			//TODO: Identify if this is a book or a periodical (based on which search fields appear)
+		}
 
 		return result;
 	}
@@ -208,7 +306,7 @@ public class Database
 		//Add one copies of each book/periodical
 		for(int i=0; i<items.size(); i++)
 		{
-			copies.add(new Copy(""+i, false, items.get(i)));		
+			copies.add(new Copy(""+(i+1), false, items.get(i)));		
 		}
 
 		return copies;
@@ -254,5 +352,112 @@ public class Database
 		}
 
 		return result;
+	}
+	
+	public static Copy find_copies_by_dewey(String dewey) throws DataNotFoundException
+	{
+		ArrayList<Copy> copies = Database.find_copies();
+		Copy copy = null;
+
+		for(int i=0; i<copies.size(); i++)
+		{
+			if(copies.get(i).deweyIndex != null && copies.get(i).deweyIndex.equals(dewey))
+			{
+				copy = copies.get(i);
+			}
+		}
+		
+		if (copy == null)
+			throw new DataNotFoundException("No copy with this dewey number");
+
+		return copy;
+	}
+
+//==============================================================
+// RESERVATIONS METHODS
+//==============================================================
+	/**
+	 * Return all Reservations in the database
+	 *
+	 * @return ArrayList<Reservation>
+	 */
+	public static ArrayList<Reservation> find_reservations()
+	{
+		ArrayList<Reservation> reservations = new ArrayList<Reservation>();
+		ArrayList<Borrower> borrowers = Database.find_borrowers();
+		ArrayList<Item> items = Database.find_items();
+
+		Date today = new Date();
+
+		reservations.add(new Reservation(new Date(), 1, items.get(0)));			
+		reservations.add(new Reservation(new Date(), 1, items.get(1)));
+		reservations.add(new Reservation(new Date(), 3, items.get(1)));
+		reservations.add(new Reservation(new Date(), 3, items.get(4)));
+		reservations.add(new Reservation(new Date(), 4, items.get(4)));
+
+		return reservations;
+	}
+
+	/**
+	 * Return all Reservations in the database belonging to a specified item
+	 *
+	 * @param id	the id of the borrower 
+	 * @return ArrayList<Loan>
+	 */
+	public static ArrayList<Reservation> find_reservations(Item item)
+	{
+		ArrayList<Reservation> all_reservations = Database.find_reservations();
+		ArrayList<Reservation> result = new ArrayList<Reservation>();
+
+		for(int i=0; i<all_reservations.size(); i++)
+		{
+			//If it is a book then compare isbn's 
+			if(all_reservations.get(i).item.getType() == "Book")
+			{
+			
+				if(all_reservations.get(i).item.isbn.equals(item.isbn))
+					result.add(all_reservations.get(i));
+	
+			//Else if it is a periodical then compare issn's
+			}else{
+
+				if(all_reservations.get(i).item.issn.equals(item.issn))
+					result.add(all_reservations.get(i));
+			}
+		}
+
+		return result;		
+	}
+
+	/**
+	 * Place a reservation on an item. If there are free copies then notify. Otherwise, the Copy that was loaned with the earliest issue 		 * date is recalled and the Borrower is told to wait for a week
+	 *
+	 * @param id	the id of the borrower 
+	 * @return ArrayList<Loan>
+	 */
+	public static void place_reservation(int borrower_id, Item item) throws ReservationException
+	{
+		ArrayList<Copy> copies = item.getCopies();
+		
+		//1. Find the first free copy
+		Copy free_copy = null; 
+		for(int i=0; i<copies.size(); i++)
+		{
+			if(copies.get(i).onLoan() == false)
+			{
+				free_copy = copies.get(i);
+				break;
+			}
+		}
+
+		//If there are free copies then notify
+		if(free_copy != null)
+		{
+			throw new ReservationException("There are already copies of this item available!");
+
+		//Otherwise the Copy that was loaned with the earliest issue is recalled and Borrower is notified
+		}else{
+			//MYSQL: code goes here to add a new reservation
+		}
 	}
 }

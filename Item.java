@@ -38,6 +38,18 @@ public class Item
         this.number = number;
     }
 
+	public boolean isReserved()
+	{
+		ArrayList reservations = Database.find_reservations(this);
+
+		if(reservations.size() > 0)
+		{
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	public ArrayList<Copy> getCopies()
 	{
 		ArrayList<Copy> copies = new ArrayList<Copy>();
@@ -69,9 +81,9 @@ public class Item
 	{
 		if(this.getType().equals("Book"))
 		{
-			return "Book: \t"+this.isbn+"\t "+this.title+"\t by "+this.author;
+			return "Book: \t"+this.isbn+"\t "+this.title+"\t by "+this.author+"\t is it reserved? "+this.isReserved();
 		}else{
-			return "Periodical: \t"+this.issn+"\t "+this.title+"\t by "+this.publisher;			
+			return "Periodical: \t"+this.issn+"\t "+this.title+"\t by "+this.publisher+"\t is it reserved? "+this.isReserved();			
 		}
 	}
 }

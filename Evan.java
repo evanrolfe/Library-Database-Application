@@ -19,8 +19,8 @@ public class Evan
 	public static void test_loan() throws Exception
 	{
 		ArrayList<Loan> loans = new ArrayList<Loan>();
-		ArrayList<Borrower> borrowers = Borrowers.find_all();
-		ArrayList<Item> items = Items.find_all();
+		ArrayList<Borrower> borrowers = Database.find_borrowers();
+		ArrayList<Copy> items = Database.find_copies();
 
 		Date today = new Date();
 		Date month_ago = new Date(today.getTime() - 3*7*24*3600*1000);

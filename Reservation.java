@@ -8,10 +8,26 @@ import java.util.Date;
 */
 public class Reservation 
 {
-    Date reserveDate;
+    public Date reserveDate;
+	public int borrower_id;
+	public String book_isbn;
+	public String periodical_issn;
 
-    public Reservation(Date reserveDate)
+	public Item item;
+
+    public Reservation(Date reserveDate, int borrower_id, Item item)
     {
+		this.borrower_id = borrower_id;
         this.reserveDate = reserveDate;
+
+		this.item = item;
+
+		if(item.getType() == "Book")
+		{
+			this.book_isbn = item.isbn;			
+		}else if(item.getType() == "Periodical")
+		{
+			this.periodical_issn = item.issn;			
+		}
     }
 }

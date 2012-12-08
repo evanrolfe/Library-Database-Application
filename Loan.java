@@ -10,11 +10,17 @@ public class Loan
 	public String book_isbn;
 	public String periodical_issn;
 
-    public Loan(String deweyID, Date issueDate, int borrower_id, Item item)
+	public Item item;
+	public Copy copy;
+
+    public Loan(String deweyID, Date issueDate, int borrower_id, Copy copy)
     {
         this.deweyID = deweyID;
         this.issueDate = issueDate;
 		this.borrower_id = borrower_id;
+
+		this.item = copy.item;
+		this.copy = copy;
 
 		if(item.getType() == "Book")
 		{
@@ -38,5 +44,21 @@ public class Loan
 		}else{
 			return false;
 		}
+	}
+
+	public int getFine()
+	{
+		if(this.overDue()==true)
+		{
+			//TODO: workout the difference in days (£1/day) to calculate the fine
+			return 0;
+		}else{
+			return 0;
+		}
+	}
+
+	public String toString()
+	{
+		return "Loan:"+this.deweyID+"\t Issue Date: "+this.issueDate+"\t "+this.dueDate+"\t Is loan overdue? "+this.overDue();
 	}
 }
