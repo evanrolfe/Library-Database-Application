@@ -93,23 +93,21 @@ public class Borrower
 	{
 		Object out = new Object();
 
-		switch(key)
+		if(key.equals(this.id))
 		{
-			case "id":
-				out = this.id;
-			break;
-
-			case "forename":
-				out = this.forename;
-			break;
-
-			case "surname":
-				out = this.surname;
-			break;
-
-			case "email":
-				out = this.email;
-			break;
+			out = this.id;
+		}
+		else if(key.equals(this.forename))
+		{
+			out = this.forename;
+		}
+		else if(key.equals(this.surname))
+		{
+			out = this.surname;
+		}
+		else if(key.equals(this.email))
+		{
+			out = this.email;
 		}
 
 		return out;
