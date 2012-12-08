@@ -50,7 +50,7 @@ public class SysSearching
 	}
 
 	//3. "Place a reservation on a book/periodical. If there are free copies then the borrower is notified of this. Otherwise, the Copy that was loaned with the earliest issue date is recalled and the Borrower is told to wait for a week."
-	public void place_reservation()
+	public void place_reservation() throws ReservationException
 	{
 		Borrower borrower = Database.find_borrower(1);
 		ArrayList<Item> items = Database.find_items();

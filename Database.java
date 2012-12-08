@@ -182,7 +182,7 @@ public class Database
 			throw new LoanException("That copy  is marked for reference only!");
 
 		//2.
-		if(copy.getLoans() != null)
+		if(copy.getLoan() != null)
 			throw new LoanException("That copy is already on loan!");		
 
 		//3.

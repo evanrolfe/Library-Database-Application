@@ -32,9 +32,9 @@ public class Copy
 
 	public boolean onLoan()
 	{
-		ArrayList<Loan> loans = this.getLoans();
+		Loan loan = this.getLoan();
 
-		if(loans.size() > 0)
+		if(loan == null)
 		{
 			return true;
 		}else{
@@ -42,7 +42,7 @@ public class Copy
 		}
 	}
 
-	public Loan getLoans()
+	public Loan getLoan()
 	{
 		Loan loan = null;
 		try {
@@ -51,9 +51,8 @@ public class Copy
 		} 
 		catch (DataNotFoundException e) 
 		{
-			// TODO 
+			return null;
 		}
-		return loan;
 	}
 
 	public String toString()
