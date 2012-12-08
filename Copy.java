@@ -25,6 +25,23 @@ public class Copy
 		this.item = item;
 	}
 
+	//This constructor can be used if you have the issn/isbn of the item but you do not have the Item object
+	public Copy(String deweyIndex, boolean referenceOnly, String identify, String type)
+	{
+		this.deweyIndex = deweyIndex;
+		this.referenceOnly = referenceOnly;
+
+		if(item.getType() == "Book")
+		{
+			this.book_isbn = item.isbn;			
+		}else if(item.getType() == "Periodical")
+		{
+			this.periodical_issn = item.issn;			
+		}
+
+		this.item = item;
+	}
+
 	public Item getItem()
 	{
 		return item;
