@@ -25,9 +25,9 @@ public class Reservation
 		if(item.getType() == "Book")
 		{
 			this.book_isbn = item.isbn;			
-		}else if(item.getType() == "Periodical")
-		{
+		}else{
 			this.periodical_issn = item.issn;			
 		}
     }
+
 }

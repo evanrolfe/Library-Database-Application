@@ -31,14 +31,14 @@ public class SQL
      * @param id The id of the borrower
      * @return An ArrayList of the loans a given borrower has
      */
-    public ArrayList<Loan> getLoans(int id)
+    public ArrayList<Loan> getLoans(int id) throws DataNotFoundException
     {
         Hashtable<String, Object> options = new Hashtable<String, Object>();
         options.put("id", id);
         return getLoans(options);
     }
 
-    private ArrayList<Loan> getLoans(Hashtable<String, Object> options)
+    private ArrayList<Loan> getLoans(Hashtable<String, Object> options) throws DataNotFoundException
     {
         ArrayList<Loan> toReturn = new ArrayList<Loan>();
         String query = "SELECT * FROM LOANS ";
@@ -108,11 +108,11 @@ public class SQL
         {
             while (result.next())
             {
-                Date issueDate = result.getDate("issueDate");
-                Date dueDate = result.getDate("dueDate");
+                java.util.Date issueDate = result.getDate("issueDate");
+                java.util.Date dueDate = result.getDate("dueDate");		//EVAN: unnecessary to use the dueDate field as it is already calculated by the Loan object
                 String deweyID = result.getString("deweyID");
-                int id = result.getInt("id");
-                Loan toAdd = new Loan(id, issueDate, dueDate, deweyID);
+                int id = result.getInt("id");							//EVAN: Is this the borrower's id?
+                Loan toAdd = new Loan(deweyID, issueDate, id);
                 toReturn.add(toAdd);
             }
         }
@@ -197,8 +197,8 @@ public class SQL
                 String title = result.getString("title");
                 String author = result.getString("author");
                 String publisher = result.getString("publisher");
-                Date date = result.getDate("date");
-                Item toAdd = new Item(id, title, author, publisher, date);
+                java.util.Date date = result.getDate("date");
+                Item toAdd = new Item(""+id, title, author, publisher, date);
                 toReturn.add(toAdd);
             }
         }
@@ -288,7 +288,7 @@ public class SQL
 
     public Item getBook(int ISBN)
     {
-        return new Item("0-00000-9", "The glory of boilerplate functions", "Patrick Rose", "COM3002", new Date());
+        return new Item("0-00000-9", "The glory of boilerplate functions", "Patrick Rose", "COM3002", new java.util.Date());
     }
 
     public Copy getCopy(String deweyID) throws IndexOutOfBoundsException
@@ -483,12 +483,13 @@ public class SQL
         {
             while(result.next())
             {
-                Date reserveDate = result.getDate("date");
+                java.util.Date reserveDate = result.getDate("date");
                 int memberId = result.getInt("id");
                 int isbn = result.getInt("isbn");
                 int issn = result.getInt("issn");
-                Item periodical = getPeriodical(issn);
-                Reservation toAdd = new Reservation(reserveDate, memberId, issn, isbn);
+                Item item = getPeriodical(issn);
+
+                Reservation toAdd = new Reservation(reserveDate, memberId, item);
                 toReturn.add(toAdd);
             }
         }
@@ -499,7 +500,7 @@ public class SQL
         return toReturn;
     }
 
-    public void updateLoan(Hashtable<String, Object> details, Date newDate)
+    public void updateLoan(Hashtable<String, Object> details, java.util.Date newDate)
     {
         String query = "UPDATE loans SET date=" + newDate + " WHERE id=" +
                 details.get("id") + " AND deweyID=" + details.get("deweyID");
@@ -648,8 +649,9 @@ public class SQL
                 int number = result.getInt("number");
                 String author = result.getString("author");
                 String publisher = result.getString("publisher");
-                Date date = result.getDate("date");
-                Item toAdd = new Item(id, title, volume, number, publisher, date);
+                java.util.Date date = result.getDate("date");
+
+                Item toAdd = new Item(Integer.toString(id), title, volume, number, publisher, date);
                 toReturn.add(toAdd);
             }
         }
