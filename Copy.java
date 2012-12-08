@@ -16,10 +16,10 @@ public class Copy
 
 		if(item.getType() == "Book")
 		{
-			this.book_isbn = item.isbn;			
+			this.book_isbn = item.isbn;	
 		}else if(item.getType() == "Periodical")
 		{
-			this.periodical_issn = item.issn;			
+			this.periodical_issn = item.issn;	
 		}
 
 		this.item = item;
@@ -48,8 +48,8 @@ public class Copy
 		try {
 			loan = Database.find_loans_by_deweyid(this.deweyIndex);
 			return loan;
-		} 
-		catch (DataNotFoundException e) 
+		}
+		catch (DataNotFoundException e)
 		{
 			return null;
 		}
