@@ -2,6 +2,8 @@ import java.util.*;
 
 public class Database
 {
+	MysqlConnection db = new MysqlConnection();
+
 //==============================================================
 // BORROWERS METHODS
 //==============================================================

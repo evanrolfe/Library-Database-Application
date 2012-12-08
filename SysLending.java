@@ -5,6 +5,8 @@ public class SysLending
 	public static void main(String[] args) throws Exception, InvalidArgumentException
 	{
 		SysLending sys = new SysLending();
+		sys.search_borrower();
+		sys.search_item();
 		sys.identify_copy();
 		sys.issue_loan();
 	}

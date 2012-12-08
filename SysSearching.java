@@ -5,8 +5,8 @@ public class SysSearching
 	public static void main(String[] args) throws Exception, InvalidArgumentException
 	{
 		SysSearching sys = new SysSearching();
-		//sys.search_borrower(3);
-		//sys.search_items();
+		sys.search_borrower(3);
+		sys.search_items();
 		sys.place_reservation();
 	}
 
