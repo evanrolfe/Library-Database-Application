@@ -430,6 +430,22 @@ public class Database
 	}
 
 	/**
+	 * Cancel a reservation
+	 *
+	 * @param id	the id of the borrower 
+	 * @return ArrayList<Loan>
+	 */
+	public static void cancel_reservation(int borrower_id, Item item) throws ReservationException
+	{
+		if(item.getType() == "Book")
+		{
+			//Delete by borrower_id and isbn
+		}else{
+			//Delete by borrower_id and issn			
+		}
+	}
+
+	/**
 	 * Place a reservation on an item. If there are free copies then notify. Otherwise, the Copy that was loaned with the earliest issue 		 * date is recalled and the Borrower is told to wait for a week
 	 *
 	 * @param id	the id of the borrower 
