@@ -34,6 +34,11 @@ public class Loan
 		this.dueDate = new Date(timestamp);
     }
 
+    public Loan(String deweyID, Date issueDate, int borrower_id) throws DataNotFoundException
+    {
+		this(deweyID, issueDate, borrower_id, Database.find_copies_by_dewey(deweyID));
+    }
+
 	public boolean overDue()
 	{
 		Date now = new Date();
