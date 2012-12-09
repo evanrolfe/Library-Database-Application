@@ -196,6 +196,9 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 		} catch (InvalidArgumentException e) 
 		{
 			// TODO 
+		} catch (DataNotFoundException e)
+		{
+			// TODO
 		}
 	}
 	

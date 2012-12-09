@@ -4,39 +4,21 @@ public class EvansTests
 {
 	public static void main(String[] args) throws Exception
 	{
-		//MYSQL tests
-		//EvansTests.test_db();
-
-		//Part ONE
 		EvansTests.test_borrowers();
-		//EvansTests.test_loan();
 
-		//Part TWO
-		//EvansTests.test_items();
+		EvansTests.test_loan();
+
+		EvansTests.test_items();
 
 		//Part THREE
-		//EvansTests.test_copies();
+		EvansTests.test_copies();
 	}
-	public static void test_db()
-	{
-		ArrayList<Borrower> b = Database.find_borrowers();
-	}
+
 
 	//TODO: for some reason java's date class does not seem to be able to subtract > 1 month from the timestamp? it wraps around..
 	public static void test_loan() throws Exception
 	{
-		ArrayList<Loan> loans = new ArrayList<Loan>();
-		ArrayList<Borrower> borrowers = Database.find_borrowers();
-		ArrayList<Copy> items = Database.find_copies();
-
-		Date today = new Date();
-		Date month_ago = new Date(today.getTime() - 3*7*24*3600*1000);
-
-		System.out.println(month_ago);
-	
-		loans.add(new Loan("1", new Date(), borrowers.get(0).id, items.get(0)));
-		loans.add(new Loan("2", new Date(), borrowers.get(0).id, items.get(2)));
-		loans.add(new Loan("3", new Date(), borrowers.get(4).id, items.get(1)));
+		ArrayList<Loan> loans = Database.find_loans();
 
 		for(int i=0; i<loans.size(); i++)
 		{

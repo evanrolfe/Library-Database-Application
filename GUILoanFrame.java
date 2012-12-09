@@ -55,10 +55,10 @@ public class GUILoanFrame extends JPanel implements ActionListener
 	
 	public void createLoan()
 	{
-		Borrower borrower = Database.find_borrower((Integer.parseInt(memNoTextField.getText())));
 		try
 		{
-			Copy copy = Database.find_copies_by_dewey(deweyTextField.getText());
+			Borrower borrower = Database.find_borrower((Integer.parseInt(memNoTextField.getText())));
+			Copy copy = Database.find_copy_by_dewey(deweyTextField.getText());
 			
 			Database.issue_loan(copy, borrower);
 		}

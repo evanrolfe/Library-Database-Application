@@ -48,6 +48,10 @@ public class GUIDischargeFrame extends JPanel
 		{
 			// TODO
 		}
+		catch (InvalidArgumentException e2)
+		{
+			//TODO
+		}
 	}
 
 }

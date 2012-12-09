@@ -154,6 +154,9 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		} catch (InvalidArgumentException e) 
 		{
 			// TODO 
+		} catch (DataNotFoundException e)
+		{
+			//TODO
 		}
 	}
 	

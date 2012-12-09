@@ -34,9 +34,9 @@ public class Loan
 		this.dueDate = new Date(timestamp);
     }
 
-    public Loan(String deweyID, Date issueDate, int borrower_id) throws DataNotFoundException
+    public Loan(String deweyID, Date issueDate, int borrower_id) throws DataNotFoundException, InvalidArgumentException
     {
-		this(deweyID, issueDate, borrower_id, Database.find_copies_by_dewey(deweyID));
+		this(deweyID, issueDate, borrower_id, Database.find_copy_by_dewey(deweyID));
     }
 
 	public boolean overDue()

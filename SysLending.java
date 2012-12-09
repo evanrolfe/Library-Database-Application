@@ -31,7 +31,7 @@ public class SysLending
 	}
 
 	//2. "Search for any given Book or Periodical on any field, or combination of fields. Identify a book by its ISBN and a Periodical by ISSN and see its details. List all Copies related to that Book or Periodical and identify which are currently on loan."
-	public void search_item() throws InvalidArgumentException
+	public void search_item() throws InvalidArgumentException, DataNotFoundException
 	{
 		//Find all the books/periodicals (optionally add paramenters to find_items for searching)
 		Hashtable params = new Hashtable();
@@ -62,7 +62,7 @@ public class SysLending
 		}			
 	}
 
-	public void list_reservations()
+	public void list_reservations() throws DataNotFoundException, InvalidArgumentException
 	{
 		ArrayList<Reservation> reservations = Database.find_reservations();
 

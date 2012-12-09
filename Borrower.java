@@ -93,7 +93,7 @@ public class Borrower
 	//Calculates any fines the borrower is required to pay.
 	public int fines() throws Exception
 	{
-		//TODO: calculate the borrowers £fines
+		//TODO: calculate the borrowers fines
 		return 0;
 	}
 

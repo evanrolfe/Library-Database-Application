@@ -29,7 +29,7 @@ public class SysSearching
 
 	//2. "Search for any given book/periodical on any field, or combination of fields. ... and see its details. List all copies related to that book/periodical and identify which ones are still in the library.
 
-	public void search_items() throws InvalidArgumentException
+	public void search_items() throws InvalidArgumentException, DataNotFoundException
 	{
 		//Find all the books/periodicals (optionally add paramenters to find_items for searching)
 		Hashtable options = new Hashtable();
@@ -50,7 +50,7 @@ public class SysSearching
 	}
 
 	//3. "Place a reservation on a book/periodical. If there are free copies then the borrower is notified of this. Otherwise, the Copy that was loaned with the earliest issue date is recalled and the Borrower is told to wait for a week."
-	public void place_reservation() throws ReservationException
+	public void place_reservation() throws ReservationException, DataNotFoundException, InvalidArgumentException
 	{
 		Borrower borrower = Database.find_borrower(1);
 		ArrayList<Item> items = Database.find_items();

@@ -31,6 +31,8 @@ public class Copy
 		this.deweyIndex = deweyIndex;
 		this.referenceOnly = referenceOnly;
 
+		//TODO: item is not defined
+
 		if(item.getType() == "Book")
 		{
 			this.book_isbn = item.isbn;			
@@ -47,7 +49,7 @@ public class Copy
 		return item;
 	}
 
-	public boolean onLoan()
+	public boolean onLoan() throws DataNotFoundException, InvalidArgumentException
 	{
 		Loan loan = this.getLoan();
 
@@ -59,7 +61,7 @@ public class Copy
 		}
 	}
 
-	public Loan getLoan()
+	public Loan getLoan() throws DataNotFoundException, InvalidArgumentException
 	{
 		Loan loan = null;
 		try {
@@ -74,11 +76,20 @@ public class Copy
 
 	public String toString()
 	{
-		if(this.item.getType() == "Book")
+		try
 		{
-			return "B: "+this.deweyIndex+"\t ISBN: "+this.item.isbn+"\t is it on loan? "+this.onLoan();
-		}else{
-			return "P: "+this.deweyIndex+"\t ISSN: "+this.item.issn+"\t is it on loan? "+this.onLoan();
+			if(this.item.getType() == "Book")
+			{
+				return "B: \t ISBN: "+this.item.isbn+"\t is it on loan? "+this.onLoan();
+			}else{
+				return "P: \t ISSN: "+this.item.issn+"\t is it on loan? "+this.onLoan();
+			}
+		}catch(DataNotFoundException e)
+		{
+			return "ERROR";
+		}catch(InvalidArgumentException e)
+		{
+			return "ERROR";
 		}
 	}
 }

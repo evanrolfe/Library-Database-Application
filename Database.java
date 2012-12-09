@@ -2,8 +2,6 @@ import java.util.*;
 
 public class Database
 {
-	MysqlConnection db = new MysqlConnection();
-
 //==============================================================
 // BORROWERS METHODS
 //==============================================================
@@ -13,19 +11,10 @@ public class Database
 	 *
 	 * @return ArrayList<Borrower>
 	 */
-	public static ArrayList<Borrower> find_borrowers()
+	public static ArrayList<Borrower> find_borrowers() throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Borrower> borrowers = new ArrayList<Borrower>();
-
-		//EXAMPLE BY EVAN (ONLY FOR TESTING)
-			borrowers.add(new Borrower(1, "Evan", "Rolfe", "evanrolfe@hotmail.com"));
-			borrowers.add(new Borrower(2, "Patrick", "Rose", "prose@gmail.com"));
-			borrowers.add(new Borrower(3, "Jake", "Grover", "jg@hotmail.com"));
-			borrowers.add(new Borrower(4, "Nikhil", "Dodhia", "aca10nd@shef.ac.uk"));
-			borrowers.add(new Borrower(5, "Jordan", "Millner", "aca10jm@shef.ac.uk"));
-			borrowers.add(new Borrower(6, "Evan", "Millner", "aca10jm@shef.ac.uk"));
-
-		return borrowers;
+		Mysql db = new Mysql();
+		return db.getBorrowers();
 	}
 
 	/**
@@ -34,19 +23,10 @@ public class Database
 	 * @param id
 	 * @return Borrower
 	 */
-	public static Borrower find_borrower(int id)
+	public static Borrower find_borrower(int id) throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Borrower> borrowers = Database.find_borrowers();
-
-		for(int i=0; i<borrowers.size(); i++)
-		{
-			if(borrowers.get(i).id == id)
-			{
-				return borrowers.get(i);
-			}
-		}
-
-		return borrowers.get(0);
+		Mysql db = new Mysql();
+		return db.getBorrower(id);
 	}
 
 	/**
@@ -55,37 +35,10 @@ public class Database
 	 * @param params a hashtable with the search parameters where the key is the column and the value is the search value
 	 * @return ArrayList<Borrower>
 	 */
-	public static ArrayList<Borrower> find_borrowers(Hashtable params) throws InvalidArgumentException
+	public static ArrayList<Borrower> find_borrowers(Hashtable params) throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Borrower> borrowers = new ArrayList<Borrower>();
-
-		Set set = params.entrySet();
-		Iterator it = set.iterator();
-
-		//This is used to check that the right search fields have been inputted
-		String[] columns = new String[] { "id", "forename", "surname", "email" };
-		Arrays.sort(columns);
-
-		//1. Instantiate result arraylist
-		ArrayList<Borrower> result = new ArrayList<Borrower>();
-
-		//2. Iteratate through each search field and filter out borrowers accordingly
-		while(it.hasNext())
-		{			
-			Map.Entry row = (Map.Entry) it.next();
-
-			//3. In case this method was called with a field that does not exist for Borrower
-			if(Arrays.binarySearch(columns, row.getKey()) < 0)
-				throw new InvalidArgumentException("The search field you have entered: '"+row.getKey()+"' is not a valid borrower field!");
-		}
-
-		//MYSQL: Should fetch borrowers from database, then create a new Borrower object for each one and push it to the borrowers ArrayList
-
-		//EXAMPLE BY EVAN (ONLY FOR TESTING) (DELETE THIS WHEN MYSQL IS IMPLEMENTED)
-			borrowers.add(new Borrower(3, "Jake", "Grover", "jg@hotmail.com"));
-			borrowers.add(new Borrower(6, "Evan", "Millner", "aca10jm@shef.ac.uk"));
-
-		return borrowers;
+		Mysql db = new Mysql();
+		return db.getBorrowers(params);
 	}
 
 //==============================================================
@@ -96,23 +49,10 @@ public class Database
 	 *
 	 * @return ArrayList<Loan>
 	 */
-	public static ArrayList<Loan> find_loans()
+	public static ArrayList<Loan> find_loans() throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Loan> loans = new ArrayList<Loan>();
-		ArrayList<Borrower> borrowers = Database.find_borrowers();
-		ArrayList<Copy> items = Database.find_copies();
-
-		Date today = new Date();
-
-		loans.add(new Loan("1", new Date(), borrowers.get(0).id, items.get(0)));
-		loans.add(new Loan("2", new Date(), borrowers.get(0).id, items.get(2)));
-		loans.add(new Loan("3", new Date(), borrowers.get(4).id, items.get(1)));
-
-		loans.add(new Loan("4", new Date(), borrowers.get(1).id, items.get(3)));
-		loans.add(new Loan("5", new Date(), borrowers.get(1).id, items.get(4)));
-		loans.add(new Loan("6", new Date(today.getTime()-11*7*24*3600*1000), borrowers.get(2).id, items.get(5)));
-
-		return loans;
+		Mysql db = new Mysql();
+		return db.getLoans();
 	}
 
 	/**
@@ -121,21 +61,12 @@ public class Database
 	 * @param id	the id of the borrower 
 	 * @return ArrayList<Loan>
 	 */
-	public static ArrayList<Loan> find_loans(int id)
+	public static ArrayList<Loan> find_loans(int id) throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Loan> all_loans = Database.find_loans();
-		
-		ArrayList<Loan> result = new ArrayList<Loan>();
-
-		for(int i=0; i<all_loans.size(); i++)
-		{
-			if(all_loans.get(i).borrower_id == id)
-			{
-				result.add(all_loans.get(i));
-			}
-		}
-
-		return result;		
+		Mysql db = new Mysql();
+		Hashtable<String,Object> params = new Hashtable<String,Object>();
+		params.put("id", id);
+		return db.getLoans(params);	
 	}
 
 	/**
@@ -144,25 +75,22 @@ public class Database
 	 * @param id	the dewey id 
 	 * @return ArrayList<Loan>
 	 */
-	public static Loan find_loans_by_deweyid(String id) throws DataNotFoundException
+	public static Loan find_loans_by_deweyid(String deweyid) throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Loan> all_loans = Database.find_loans();
-		Loan loan = null;
+		Mysql db = new Mysql();
+		Hashtable<String,Object> params = new Hashtable<String,Object>();
+		params.put("deweyID", deweyid);
 
-		for(int i=0; i<all_loans.size(); i++)
+		Loan loan;
+		try
 		{
-			if(all_loans.get(i).deweyID.equals(id))
-			{
-				loan = all_loans.get(i);
-			}
-		}
-		
-		if (loan == null)
+			loan = db.getLoans(params).get(0);		
+		}catch(IndexOutOfBoundsException e)
 		{
-			throw new DataNotFoundException("The copy with this dewey number is not on loan.");
+			throw new DataNotFoundException("There is no loan with the dewey ID: "+deweyid+"!");
 		}
 
-		return loan;		
+		return loan;
 	}
 
 	/**
@@ -239,20 +167,16 @@ public class Database
 	 *
 	 * @return ArrayList<Item>
 	 */
-	public static ArrayList<Item> find_items()
+	public static ArrayList<Item> find_items() throws DataNotFoundException, InvalidArgumentException
 	{
+		Mysql db = new Mysql();
 		ArrayList<Item> items = new ArrayList<Item>();	
 	
 		//Books
-		items.add(new Item("0-000000-00-1", "Fifty Shades of Gray", "E. L. James", "Vintage Books", new Date()));
-		items.add(new Item("0-000000-00-2", "Crime and Punishment", "Fyoder Dostoyevsky", "Penguin", new Date()));
-		items.add(new Item("0-000000-00-3", "Wuthering Heights", "Emily Bronte", "Random House", new Date()));
-		items.add(new Item("0-000000-00-4", "Beyond Good and Evil", "Friedrich Nietzsche", "Penguin", new Date()));
+		items.addAll(db.getBooks());
 
 		//Periodicals
-		items.add(new Item("0-330000-00-1", "Harvard Medical Review", 29, 1, "Harvard Press", new Date()));
-		items.add(new Item("0-777000-00-2", "Oxford Mathematics", 69, 2, "Oxford Press", new Date()));
-		items.add(new Item("0-666000-00-3", "Modern Physics", 1, 1, "Oxford Press", new Date()));
+		items.addAll(db.getPeriodicals());
 
 		return items;
 	}
@@ -263,32 +187,19 @@ public class Database
 	 * @param Hashtable	the search parameters i.e. Hashtable: {"author" => "J.K. Rowling", "title" => "Harry Potter"}
 	 * @return ArrayList<Loan>
 	 */
-	public static ArrayList<Item> find_items(Hashtable params) throws InvalidArgumentException
+	public static ArrayList<Item> find_items(Hashtable params) throws DataNotFoundException, InvalidArgumentException
 	{
-		//1. Instantiate result arraylist
-		ArrayList<Item> result = Database.find_items();
+		Mysql db = new Mysql();
+		ArrayList<Item> items = new ArrayList<Item>();	
+	
+// TODO:
+		//Books
+		items.addAll(db.getBooks(params));
 
-		Set set = params.entrySet();
-		Iterator it = set.iterator();
+		//Periodicals
+		items.addAll(db.getPeriodicals(params));
 
-		//1. Check that the right input has been given i.e. it is either a valid Book field or a valid Periodical field
-		String[] book_fields = new String[] { "isbn", "title", "author", "publisher", "date" };
-		Arrays.sort(book_fields);
-		String[] periodical_fields = new String[] { "issn", "title", "volumne","number", "publisher", "date" };
-		Arrays.sort(periodical_fields);
-
-		while(it.hasNext())
-		{			
-			Map.Entry row = (Map.Entry) it.next();
-
-			//If the search field is valid for neither books nor periodicals then throw exception
-			if(Arrays.binarySearch(book_fields, row.getKey()) < 0 && Arrays.binarySearch(periodical_fields, row.getKey()) < 0)
-				throw new InvalidArgumentException("The search field you have entered: '"+row.getKey()+"' is not a valid borrower field!");
-
-			//TODO: Identify if this is a book or a periodical (based on which search fields appear)
-		}
-
-		return result;
+		return items;
 	}
 
 
@@ -300,18 +211,10 @@ public class Database
 	 *
 	 * @return ArrayList<Copy>
 	 */
-	public static ArrayList<Copy> find_copies()
+	public static ArrayList<Copy> find_copies() throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Item> items = Database.find_items();
-		ArrayList<Copy> copies = new ArrayList<Copy>();
-
-		//Add one copies of each book/periodical
-		for(int i=0; i<items.size(); i++)
-		{
-			copies.add(new Copy(""+(i+1), false, items.get(i)));		
-		}
-
-		return copies;
+		Mysql db = new Mysql();
+		return db.getCopies();
 	}
 
 	/**
@@ -319,20 +222,12 @@ public class Database
 	 *
 	 * @return ArrayList<Copy>
 	 */
-	public static ArrayList<Copy> find_copies_by_issn(String issn)
+	public static ArrayList<Copy> find_copies_by_issn(String issn) throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Copy> copies = Database.find_copies();
-		ArrayList<Copy> result = new ArrayList<Copy>();
-
-		for(int i=0; i<copies.size(); i++)
-		{	
-			if(copies.get(i).periodical_issn != null && copies.get(i).periodical_issn.equals(issn))
-			{
-				result.add(copies.get(i));
-			}
-		}
-
-		return result;
+		Mysql db = new Mysql();
+		Hashtable<String,Object> params = new Hashtable<String,Object>();
+		params.put("issn", issn);
+		return db.getCopies(params);
 	}
 
 	/**
@@ -340,39 +235,18 @@ public class Database
 	 *
 	 * @return ArrayList<Copy>
 	 */
-	public static ArrayList<Copy> find_copies_by_isbn(String isbn)
+	public static ArrayList<Copy> find_copies_by_isbn(String isbn) throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Copy> copies = Database.find_copies();
-		ArrayList<Copy> result = new ArrayList<Copy>();
-
-		for(int i=0; i<copies.size(); i++)
-		{
-			if(copies.get(i).book_isbn != null && copies.get(i).book_isbn.equals(isbn))
-			{
-				result.add(copies.get(i));
-			}
-		}
-
-		return result;
+		Mysql db = new Mysql();
+		Hashtable<String,Object> params = new Hashtable<String,Object>();
+		params.put("isbn", isbn);
+		return db.getCopies(params);
 	}
 	
-	public static Copy find_copies_by_dewey(String dewey) throws DataNotFoundException
+	public static Copy find_copy_by_dewey(String dewey) throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Copy> copies = Database.find_copies();
-		Copy copy = null;
-
-		for(int i=0; i<copies.size(); i++)
-		{
-			if(copies.get(i).deweyIndex != null && copies.get(i).deweyIndex.equals(dewey))
-			{
-				copy = copies.get(i);
-			}
-		}
-		
-		if (copy == null)
-			throw new DataNotFoundException("No copy with this dewey number");
-
-		return copy;
+		Mysql db = new Mysql();
+		return db.getCopy(dewey);
 	}
 
 //==============================================================
@@ -383,21 +257,10 @@ public class Database
 	 *
 	 * @return ArrayList<Reservation>
 	 */
-	public static ArrayList<Reservation> find_reservations()
+	public static ArrayList<Reservation> find_reservations() throws DataNotFoundException, InvalidArgumentException
 	{
-		ArrayList<Reservation> reservations = new ArrayList<Reservation>();
-		ArrayList<Borrower> borrowers = Database.find_borrowers();
-		ArrayList<Item> items = Database.find_items();
-
-		Date today = new Date();
-
-		reservations.add(new Reservation(new Date(), 1, items.get(0)));			
-		reservations.add(new Reservation(new Date(), 1, items.get(1)));
-		reservations.add(new Reservation(new Date(), 3, items.get(1)));
-		reservations.add(new Reservation(new Date(), 3, items.get(4)));
-		reservations.add(new Reservation(new Date(), 4, items.get(4)));
-
-		return reservations;
+		Mysql db = new Mysql();
+		return db.getReservations();
 	}
 
 	/**
@@ -406,29 +269,21 @@ public class Database
 	 * @param id	the id of the borrower 
 	 * @return ArrayList<Loan>
 	 */
-	public static ArrayList<Reservation> find_reservations(Item item)
+	public static ArrayList<Reservation> find_reservations(Item item) throws DataNotFoundException, InvalidArgumentException
 	{
+		Mysql db = new Mysql();
 		ArrayList<Reservation> all_reservations = Database.find_reservations();
 		ArrayList<Reservation> result = new ArrayList<Reservation>();
+		Hashtable<String,Object> params = new Hashtable<String,Object>();
 
-		for(int i=0; i<all_reservations.size(); i++)
+		if(item.getType() == "Book")
 		{
-			//If it is a book then compare isbn's 
-			if(all_reservations.get(i).item.getType() == "Book")
-			{
-			
-				if(all_reservations.get(i).item.isbn.equals(item.isbn))
-					result.add(all_reservations.get(i));
-	
-			//Else if it is a periodical then compare issn's
-			}else{
-
-				if(all_reservations.get(i).item.issn.equals(item.issn))
-					result.add(all_reservations.get(i));
-			}
+			params.put("isbn", item.isbn);			
+		}else{
+			params.put("issn", item.issn);		
 		}
 
-		return result;		
+		return db.getReservations(params);
 	}
 
 	/**
@@ -437,7 +292,7 @@ public class Database
 	 * @param id	the id of the borrower 
 	 * @return ArrayList<Loan>
 	 */
-	public static void cancel_reservation(int borrower_id, Item item) throws ReservationException
+	public static void cancel_reservation(int borrower_id, Item item) throws ReservationException, DataNotFoundException, InvalidArgumentException
 	{
 		if(item.getType() == "Book")
 		{
@@ -453,7 +308,7 @@ public class Database
 	 * @param id	the id of the borrower 
 	 * @return ArrayList<Loan>
 	 */
-	public static void place_reservation(int borrower_id, Item item) throws ReservationException
+	public static void place_reservation(int borrower_id, Item item) throws ReservationException, DataNotFoundException, InvalidArgumentException
 	{
 		ArrayList<Copy> copies = item.getCopies();
 		

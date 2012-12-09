@@ -254,6 +254,9 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 		} catch (InvalidArgumentException e) 
 		{
 			// TODO 
+		} catch (DataNotFoundException e)
+		{
+			//TODO
 		}
 	}
 	

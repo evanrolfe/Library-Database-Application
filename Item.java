@@ -38,7 +38,7 @@ public class Item
         this.number = number;
     }
 
-	public boolean isReserved()
+	public boolean isReserved() throws DataNotFoundException, InvalidArgumentException
 	{
 		ArrayList reservations = Database.find_reservations(this);
 
@@ -50,7 +50,7 @@ public class Item
 		}
 	}
 
-	public ArrayList<Copy> getCopies()
+	public ArrayList<Copy> getCopies() throws DataNotFoundException, InvalidArgumentException
 	{
 		ArrayList<Copy> copies = new ArrayList<Copy>();
 
@@ -79,11 +79,11 @@ public class Item
 
 	public String toString()
 	{
-		if(this.getType().equals("Book"))
-		{
-			return "Book: \t"+this.isbn+"\t "+this.title+"\t by "+this.author+"\t is it reserved? "+this.isReserved();
-		}else{
-			return "Periodical: \t"+this.issn+"\t "+this.title+"\t by "+this.publisher+"\t is it reserved? "+this.isReserved();			
-		}
+			if(this.getType().equals("Book"))
+			{
+				return "Book: \t"+this.isbn+"\t "+this.title+"\t by "+this.author;
+			}else{
+				return "Periodical: \t"+this.issn+"\t "+this.title+"\t by "+this.publisher;			
+			}
 	}
 }
