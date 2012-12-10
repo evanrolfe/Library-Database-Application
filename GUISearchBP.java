@@ -176,23 +176,54 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 	
 	public void search()
 	{
-		Hashtable<String, String> searchData = new Hashtable<String, String>();
-		searchData.put("title", titleTextField.getText());
-		searchData.put("publisher", publisherTextField.getText());
-		searchData.put("data", dateTextField.getText());
+		Hashtable<String, Object> searchData = new Hashtable<String, Object>();
+		Mysql db = new Mysql();
+		
+		if(!titleTextField.getText().isEmpty())
+		{
+			searchData.put("title", titleTextField.getText());
+		}
+		
+		if(!publisherTextField.getText().isEmpty())
+		{
+			searchData.put("publisher", publisherTextField.getText());
+		}
+		
+		if(!dateTextField.getText().isEmpty())
+		{
+			searchData.put("data", dateTextField.getText());
+		}
 		
 		if (radioInBooks.isSelected())
 		{
-			searchData.put("author", authorTextField.getText());
+			if(!authorTextField.getText().isEmpty())
+			{
+				searchData.put("author", authorTextField.getText());
+			}
 		}
 		else
 		{
-			searchData.put("volume", volumeTextField.getText());
-			searchData.put("number", numberTextField.getText());
+			if(!volumeTextField.getText().isEmpty())
+			{
+				searchData.put("volume", volumeTextField.getText());
+			}
+			
+			if(!numberTextField.getText().isEmpty())
+			{
+				searchData.put("number", numberTextField.getText());
+			}
 		}
-		
+			
 		try {
-			searchResults = Database.find_items(searchData);
+			if (radioInBooks.isSelected())
+			{
+				searchResults = db.getBooks(searchData);
+			}
+			else 
+			{
+				searchResults = db.getPeriodicals(searchData);
+			}
+			
 		} catch (InvalidArgumentException e) 
 		{
 			// TODO 
@@ -200,6 +231,8 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 		{
 			// TODO
 		}
+		
+		populateResults();
 	}
 	
 	public void populateResults()
@@ -258,7 +291,7 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 			tableModel = new DefaultTableModel(results, periodicalTableHeadings);
 		}
 		
-		populateResults();
+		
 	}
 
 	@Override
@@ -266,4 +299,5 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 	{
 		index = resultsTable.getSelectedRow();
 	}
+	
 }

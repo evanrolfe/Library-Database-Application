@@ -23,7 +23,7 @@ public class Item
         this.isbn = isbn;
         this.title = title;
         this.author = author;
-        this.author = publisher;
+        this.publisher = publisher;
         this.date = date;
     }
 

@@ -35,6 +35,8 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 	private JButton buttonSearch;
 	private ArrayList<Borrower> searchResults;
 	private JTextField emailTextField;
+	private int index;
+	private Mysql db;
 	
 	public GUISearchBorrower() 
 	{
@@ -42,22 +44,23 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		setLayout(springLayout);
 		
 		searchResults = new ArrayList<Borrower>();
+		db = new Mysql();
 		
-		JTextField forenameTextField = new JTextField();
+		forenameTextField = new JTextField();
 		springLayout.putConstraint(SpringLayout.NORTH, forenameTextField, 17, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, forenameTextField, 163, SpringLayout.WEST, this);
 		forenameTextField.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		add(forenameTextField);
 		forenameTextField.setColumns(10);
 		
-		JTextField surnameTextField = new JTextField();
+		surnameTextField = new JTextField();
 		springLayout.putConstraint(SpringLayout.NORTH, surnameTextField, 57, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, surnameTextField, 163, SpringLayout.WEST, this);
 		surnameTextField.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		add(surnameTextField);
 		surnameTextField.setColumns(10);
 		
-		JTextField memNoTextField = new JTextField();
+		memNoTextField = new JTextField();
 		springLayout.putConstraint(SpringLayout.NORTH, memNoTextField, 92, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, memNoTextField, 209, SpringLayout.WEST, this);
 		springLayout.putConstraint(SpringLayout.EAST, memNoTextField, 344, SpringLayout.WEST, this);
@@ -65,12 +68,12 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		add(memNoTextField);
 		memNoTextField.setColumns(10);
 		
-		JButton buttonSearch = new JButton("Search");
+		buttonSearch = new JButton("Search");
 		springLayout.putConstraint(SpringLayout.NORTH, buttonSearch, 186, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, buttonSearch, 95, SpringLayout.WEST, this);
 		buttonSearch.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		add(buttonSearch);
 		buttonSearch.addActionListener(this);
+		add(buttonSearch);	
 		
 		JLabel forenameLabel = new JLabel("Forename: ");
 		springLayout.putConstraint(SpringLayout.NORTH, forenameLabel, 20, SpringLayout.NORTH, this);
@@ -142,22 +145,42 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 	
 	public void search()
 	{
-		
-		Hashtable<String, String> searchData = new Hashtable<String, String>();
-		searchData.put("forename", forenameTextField.getText());
-		searchData.put("surname", surnameTextField.getText());
-		searchData.put("id", memNoTextField.getText());
-		searchData.put("email", emailTextField.getText());
+		System.out.print("1");
+		Hashtable<String, Object> searchData = new Hashtable<String, Object>();
+
+		if(!forenameTextField.getText().isEmpty())
+		{
+			searchData.put("forename", forenameTextField.getText());
+		}
+		if(!surnameTextField.getText().isEmpty())
+		{
+			searchData.put("surname", surnameTextField.getText());
+		}
+		if(!memNoTextField.getText().isEmpty())
+		{
+			searchData.put("id", memNoTextField.getText());
+		}
+		if(!emailTextField.getText().isEmpty())
+		{
+			searchData.put("email", emailTextField.getText()); 
+		}
 		
 		try {
-			searchResults = Database.find_borrowers(searchData);
-		} catch (InvalidArgumentException e) 
+			searchResults = db.getBorrowers(searchData);
+			System.out.print("2");
+		} 
+		catch (InvalidArgumentException e) 
 		{
+			System.out.print("3");
 			// TODO 
-		} catch (DataNotFoundException e)
+		} 
+		catch (DataNotFoundException e)
 		{
+			System.out.print("3");
 			//TODO
 		}
+		
+		populateResultsBorrower();
 	}
 	
 	public void populateResultsBorrower()
@@ -167,20 +190,41 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		
 		for(int i = 0; i < searchResults.size(); i++)
 		{
-			newResults[i][0] = searchResults.get(i).getValue("id");
-			newResults[i][1] = searchResults.get(i).getValue("forename");
-			newResults[i][2] = searchResults.get(i).getValue("surname");
-			newResults[i][3] = searchResults.get(i).getValue("email");
+			newResults[i][0] = searchResults.get(i).id;
+			newResults[i][1] = searchResults.get(i).forename;
+			newResults[i][2] = searchResults.get(i).surname;
+			newResults[i][3] = searchResults.get(i).email;
 		}
 		
 		tableModel.setDataVector(newResults, borrowerTableHeadings);
+		
+		if(index >= 0)
+		{
+			populateResultsLoans();
+		}
 	}
 	
 	public void populateResultsLoans()
 	{	
-		ArrayList<Loan> loanResults = new ArrayList<Loan>();
-		
 		DefaultTableModel tableModelLoan = (DefaultTableModel) borrowerLoans.getModel();
+		
+		Hashtable<String, Object> params = new Hashtable<String, Object>();
+		params.put("id", tableModelLoan.getValueAt(index, 0));
+		
+		ArrayList<Loan> loanResults = new ArrayList<Loan>();
+		try 
+		{
+			loanResults = db.getLoans(params);
+		} 
+		catch (DataNotFoundException e)
+		{
+			// TODO 
+		} 
+		catch (InvalidArgumentException e) 
+		{
+			// TODO 
+		}
+		
 		Object[][] newResults2 = new Object[loanResults.size()][3];
 		
 		for(int i = 0; i < loanResults.size(); i++)
@@ -204,24 +248,24 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 	@Override
 	public void actionPerformed(ActionEvent e) 
 	{
-		if (e.getSource() == buttonSearch)
+		if(e.getSource() == buttonSearch)
 		{
 			search();
 		}
-		
-		populateResultsBorrower();
 	}
 
 	@Override
 	public void tableChanged(TableModelEvent e) 
 	{
 		// TODO Auto-generated method stub
-			resultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent e) {
-	        int selRow = resultsTable.getSelectedRow();
-	        int selCol = resultsTable.getSelectedColumn();
-	    }
-	});
+			//resultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			//public void valueChanged(ListSelectionEvent e) {
+	    //    int selRow = resultsTable.getSelectedRow();
+	     //   int selCol = resultsTable.getSelectedColumn();
+	    //}
+	//});
+		
+		index = resultsTable.getSelectedRow();
 		
 	}
 }
