@@ -23,7 +23,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.ListSelectionModel;
 import java.awt.Component;
 
-public class GUISearchBorrower extends JPanel implements ActionListener, TableModelListener
+public class GUISearchBorrower extends JPanel implements ActionListener, TableModelListener, ListSelectionListener
 {
 
 	private Object[] borrowerTableHeadings = {"Membership Number", "Forename", "Surname", "email"};
@@ -100,6 +100,7 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		resultsTable.setShowVerticalLines(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		resultsTable.getModel().addTableModelListener(this);
+		resultsTable.getSelectionModel().addListSelectionListener(this);
 		resultsTable.setFont(new Font("Tahoma", Font.PLAIN, 18));
 	
 		Object[][] loans = {{"", "", ""}};
@@ -145,7 +146,6 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 	
 	public void search()
 	{
-		System.out.print("1");
 		Hashtable<String, Object> searchData = new Hashtable<String, Object>();
 
 		if(!forenameTextField.getText().isEmpty())
@@ -167,16 +167,13 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		
 		try {
 			searchResults = db.getBorrowers(searchData);
-			System.out.print("2");
 		} 
 		catch (InvalidArgumentException e) 
 		{
-			System.out.print("3");
 			// TODO 
 		} 
 		catch (DataNotFoundException e)
 		{
-			System.out.print("3");
 			//TODO
 		}
 		
@@ -197,33 +194,36 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		}
 		
 		tableModel.setDataVector(newResults, borrowerTableHeadings);
-		
-		if(index >= 0)
-		{
-			populateResultsLoans();
-		}
 	}
 	
 	public void populateResultsLoans()
 	{	
+		DefaultTableModel tableModel = (DefaultTableModel) resultsTable.getModel();
 		DefaultTableModel tableModelLoan = (DefaultTableModel) borrowerLoans.getModel();
 		
-		Hashtable<String, Object> params = new Hashtable<String, Object>();
-		params.put("id", tableModelLoan.getValueAt(index, 0));
+		Borrower b = null;
+		try
+		{
+			b = Database.find_borrower((int) tableModel.getValueAt(index, 0));
+		} 
+		catch (DataNotFoundException e1) 
+		{
+			// TODO 
+		} 
+		catch (InvalidArgumentException e1) 
+		{
+			// TODO 
+		}
 		
 		ArrayList<Loan> loanResults = new ArrayList<Loan>();
 		try 
 		{
-			loanResults = db.getLoans(params);
+			loanResults = b.getLoans();
 		} 
-		catch (DataNotFoundException e)
+		catch (Exception e)
 		{
 			// TODO 
 		} 
-		catch (InvalidArgumentException e) 
-		{
-			// TODO 
-		}
 		
 		Object[][] newResults2 = new Object[loanResults.size()][3];
 		
@@ -257,15 +257,17 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 	@Override
 	public void tableChanged(TableModelEvent e) 
 	{
-		// TODO Auto-generated method stub
-			//resultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-			//public void valueChanged(ListSelectionEvent e) {
-	    //    int selRow = resultsTable.getSelectedRow();
-	     //   int selCol = resultsTable.getSelectedColumn();
-	    //}
-	//});
-		
 		index = resultsTable.getSelectedRow();
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) 
+	{
+
+		if(index > -1)
+		{
+			populateResultsLoans();
+		}
 		
 	}
 }
