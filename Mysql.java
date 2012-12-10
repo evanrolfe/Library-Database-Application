@@ -368,31 +368,74 @@ public class Mysql
 
     public void createReservation(Hashtable<String, Object> details)
     {
-        String query = "INSERT INTO reservations(id, isbn, issn, date) VALUES ("+ details.get("id") + ", ";
-        if (details.containsKey("isbn"))
+        String query = "INSERT INTO reservations(id, isbn, issn, date) VALUES (?, ?, ?, ?)";
+        PreparedStatement stmt = null;
+        try
         {
-            query += details.get("isbn") + ", null, ";
+            Connection con = DriverManager.getConnection(databaseConnection);
+            stmt = con.prepareStatement(query);
+            if (details.containsKey("isbn"))
+            {
+                stmt.setInt(2, (Integer)details.get("isbn"));
+                stmt.setNull(3, Types.INTEGER);
+            }
+            else
+            {
+                stmt.setInt(3, (Integer)details.get("issn"));
+                stmt.setNull(2, Types.INTEGER);
+            }
+            stmt.setInt(1,(Integer)details.get("id"));
+            java.util.Date date = (java.util.Date) details.get("date");
+            stmt.setDate(4, new java.sql.Date(date.getTime()));
+            stmt.executeUpdate();
         }
-        else
+        catch (SQLException e)
         {
-            query += "null, " + details.get("issn") + ", ";
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        query += details.get("date") + ");";
-        runQuery(query);
+        finally
+        {
+            if (stmt != null)
+            {
+                try
+                {
+                    stmt.close();
+                }
+                catch (SQLException e)
+                {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
+            }
+        }
     }
 
     public void deleteReservation(Hashtable<String, Object> details)
     {
-        String query = "DELETE FROM reservations WHERE id="+details.get("id")+"AND ";
+        String query = "DELETE FROM reservations WHERE id= ? AND ";
+        int firstParam = (Integer) details.get("id");
+        int secondParam = 0;
         if (details.containsKey("isbn"))
         {
-            query += "isbn = " + details.get("isbn");
+            query += "isbn = ?;";
+            secondParam = (Integer) details.get("isbn");
         }
         else
         {
-            query += "isbn = " + details.get("issn");
+            query += "isbn = ?;";
+            secondParam = (Integer) details.get("isbn");
         }
-        runQuery(query);
+        try
+        {
+            Connection con = DriverManager.getConnection(databaseConnection);
+            PreparedStatement stmt = con.prepareStatement(query);
+            stmt.setInt(1, firstParam);
+            stmt.setInt(2, secondParam);
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
     }
 
 //==============================================================
