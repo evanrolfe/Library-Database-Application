@@ -8,30 +8,46 @@ javac *.java && java -cp connector.jar:. Mysql
 
 public class Mysql
 {
+    /**
+     * The connection string to the database
+     */
     private String databaseConnection = "jdbc:mysql://stusql.dcs.shef.ac.uk/team007?user=team007&password=bf251b2e";
 
-    public void createLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate)
+    /**
+     * Adds a loan to the database
+     * @param id The borrower's id
+     * @param deweyID The dewey id for the copy they've just loaned
+     * @param issueDate The issueDate of the loan
+     * @param dueDate When the loan is due
+     */
+    public void addLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate)
     {
-        PreparedStatement stmt = null;
+        PreparedStatement stmt = null; //Prepared statements mean that it does most of the hard work for us
         String copiesQuery = "UPDATE copies SET onLoan = ? WHERE deweyID LIKE ?";
         String loansQuery = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
-                "VALUES (?, ?, ?, ?);";
+                "VALUES (?, ?, ?, ?);";                            //Generate queries
         try
         {
             Connection con = DriverManager.getConnection(databaseConnection);
+            //Transaction start - since we need to update 2 tables at once.
             con.setAutoCommit(false);
             stmt = con.prepareStatement(loansQuery);
+            //Assign the parameters for the first query
             stmt.setInt(1, id);
             stmt.setString(2, deweyID);
             stmt.setDate(3, new java.sql.Date(issueDate.getTime()));
             stmt.setDate(4, new java.sql.Date(dueDate.getTime()));
+            //Execute the query
             stmt.executeUpdate();
+            //Clear and close to be safe.
             stmt.clearParameters();
+            stmt.close();
             stmt = con.prepareStatement(copiesQuery);
+            //Assign for the second
             stmt.setBoolean(1, true);
             stmt.setString(2, deweyID);
-            stmt.execute();
-            stmt.close();
+            //Execute and commit
+            stmt.executeUpdate();
             con.commit();
         }
         catch (SQLException e)
@@ -40,6 +56,7 @@ public class Mysql
         }
         finally
         {
+            //Close the connection if it's been left open.
             if (stmt != null)
             {
                 try
@@ -54,6 +71,11 @@ public class Mysql
         }
     }
 
+    /**
+     * Delete a loan from a borrower
+     * @param borrower The borrower's id
+     * @param dewey The dewey id of the copy
+     */
     public void deleteLoan(int borrower, String dewey)
     {
         String loansQuery = "DELETE FROM loans WHERE borrowerID=? AND deweyID=?";
@@ -62,17 +84,20 @@ public class Mysql
         try
         {
             Connection con = DriverManager.getConnection(databaseConnection);
-            con.setAutoCommit(false);
+            con.setAutoCommit(false); //Need to update 2 tables at once, so use transaction
             stmt = con.prepareStatement(loansQuery);
+            //Assign parameters for query 1
             stmt.setInt(1, borrower);
             stmt.setString(2, dewey);
             stmt.executeUpdate();
             stmt.clearParameters(); //Just in case...
+            stmt.close(); //Just in case...
             stmt = con.prepareStatement(copiesQuery);
+            //Assign for query 2
             stmt.setBoolean(1, false);
             stmt.setString(2, dewey);
+            stmt.executeUpdate();
             con.commit();
-            stmt.close();
         }
         catch (SQLException e)
         {
@@ -80,6 +105,7 @@ public class Mysql
         }
         finally
         {
+            //Close any open connections
             if (stmt != null)
             {
                 try
@@ -94,6 +120,12 @@ public class Mysql
         }
     }
 
+    /**
+     * Updates a loan and sets the new dueDate
+     * @param borrower The borrower's id
+     * @param dewey The dewey id of the loaned copy
+     * @param newDueDate The new dueDate for the loan
+     */
     public void updateLoan(int borrower, String dewey, java.util.Date newDueDate)
     {
         String query = "UPDATE loans SET dueDate = ? WHERE borrowerID=? AND deweyID=?";
@@ -102,11 +134,12 @@ public class Mysql
         {
             Connection con = DriverManager.getConnection(databaseConnection);
             stmt = con.prepareStatement(query);
+            //Assign the parameters for the query
             stmt.setDate(1, new java.sql.Date(newDueDate.getTime()));
             stmt.setInt(2, borrower);
             stmt.setString(3, dewey);
+            //Execute the query
             stmt.executeUpdate();
-            stmt.close();
         }
         catch (SQLException e)
         {
@@ -114,6 +147,7 @@ public class Mysql
         }
         finally
         {
+            //Close any open connections
             if (stmt != null)
             {
                 try
@@ -366,6 +400,17 @@ public class Mysql
 // SETTER METHODS
 //==============================================================
 
+    /**
+     * Creates a new reservation in the database.
+     * @param details A hashtable of all the details. It expects the following keys:
+     *                <ul>
+     *                <li>"id"</li>
+     *                <li>"isbn"</li>
+     *                <li>"issn"</li>
+     *                <li>"date"</li></ul>
+     *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
+     *                as a value to the "isbn" key.
+     */
     public void createReservation(Hashtable<String, Object> details)
     {
         String query = "INSERT INTO reservations(id, isbn, issn, date) VALUES (?, ?, ?, ?)";
@@ -374,6 +419,7 @@ public class Mysql
         {
             Connection con = DriverManager.getConnection(databaseConnection);
             stmt = con.prepareStatement(query);
+            //Give isbn and issn the right values in the database
             if (details.containsKey("isbn"))
             {
                 stmt.setInt(2, (Integer)details.get("isbn"));
@@ -387,6 +433,7 @@ public class Mysql
             stmt.setInt(1,(Integer)details.get("id"));
             java.util.Date date = (java.util.Date) details.get("date");
             stmt.setDate(4, new java.sql.Date(date.getTime()));
+            //Add to database
             stmt.executeUpdate();
         }
         catch (SQLException e)
@@ -395,6 +442,7 @@ public class Mysql
         }
         finally
         {
+            //Close any open connections
             if (stmt != null)
             {
                 try
@@ -409,12 +457,23 @@ public class Mysql
         }
     }
 
+    /**
+     * Deletes a reservation from the database
+     * @param details A hashtable of all the details of the reservation. It expects the following keys:
+     *                <ul>
+     *                <li>"id"</li>
+     *                <li>"isbn"</li>
+     *                <li>"issn"</li>
+     *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
+     *                as a value to the "isbn" key.
+     */
     public void deleteReservation(Hashtable<String, Object> details)
     {
         String query = "DELETE FROM reservations WHERE id= ? AND ";
         int firstParam = (Integer) details.get("id");
         int secondParam = 0;
         PreparedStatement stmt = null;
+        //Sort out the case of isbn/issn keys
         if (details.containsKey("isbn"))
         {
             query += "isbn = ?;";
@@ -429,8 +488,10 @@ public class Mysql
         {
             Connection con = DriverManager.getConnection(databaseConnection);
             stmt = con.prepareStatement(query);
+            //assign parameters
             stmt.setInt(1, firstParam);
             stmt.setInt(2, secondParam);
+            stmt.executeUpdate();
         }
         catch (SQLException e)
         {
@@ -606,40 +667,4 @@ public class Mysql
         }
         return objects;
     }
-
-
-    private ResultSet runQuery (String query)
-    {
-        ResultSet result = null;
-        Statement stmt = null;
-        try
-        {
-            Connection con = DriverManager.getConnection(databaseConnection);
-            stmt = con.createStatement();
-            result = stmt.executeQuery(query);
-            stmt.close();
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
-            return null;
-        }
-        finally
-        {
-            if (stmt != null)
-            {
-                try
-                {
-                    stmt.close();
-                }
-                catch (SQLException e)
-                {
-                    e.printStackTrace();
-                    //This bit makes absolutely no sense...
-                }
-            }
-        }
-        return result;
-    }
-
 }
