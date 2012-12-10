@@ -1,5 +1,5 @@
-import java.util.*;
 import java.sql.*;
+import java.util.*;
 
 /*
  * Run on command line using:
@@ -10,19 +10,122 @@ public class Mysql
 {
     private String databaseConnection = "jdbc:mysql://stusql.dcs.shef.ac.uk/team007?user=team007&password=bf251b2e";
 
-    public void createLoan(Hashtable<String, Object> details)
+    public void createLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate)
     {
-        String query = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
-                "VALUES (" + details.get("id") + ", " + details.get("deweyID") + ", " +
-                details.get("issueDate") + ", " + details.get("dueDate") + ");";
-        runQuery(query);
+        PreparedStatement stmt = null;
+        String copiesQuery = "UPDATE copies SET onLoan = ? WHERE deweyID LIKE ?";
+        String loansQuery = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
+                "VALUES (?, ?, ?, ?);";
+        try
+        {
+            Connection con = DriverManager.getConnection(databaseConnection);
+            con.setAutoCommit(false);
+            stmt = con.prepareStatement(loansQuery);
+            stmt.setInt(1, id);
+            stmt.setString(2, deweyID);
+            stmt.setDate(3, new java.sql.Date(issueDate.getTime()));
+            stmt.setDate(4, new java.sql.Date(dueDate.getTime()));
+            stmt.executeUpdate();
+            stmt.clearParameters();
+            stmt = con.prepareStatement(copiesQuery);
+            stmt.setBoolean(1, true);
+            stmt.setString(2, deweyID);
+            stmt.execute();
+            stmt.close();
+            con.commit();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if (stmt != null)
+            {
+                try
+                {
+                    stmt.close();
+                }
+                catch (SQLException e2)
+                {
+                    e2.printStackTrace();
+                }
+            }
+        }
     }
 
     public void deleteLoan(int borrower, String dewey)
     {
-        String query = "DELETE FROM loans WHERE borrowerID=" + borrower + " AND " +
-                "deweyID='" + dewey + "';";
-        runQuery(dewey);
+        String loansQuery = "DELETE FROM loans WHERE borrowerID=? AND deweyID=?";
+        String copiesQuery = "UPDATE copies SET onLoan = ? AND deweyID = ?";
+        PreparedStatement stmt = null;
+        try
+        {
+            Connection con = DriverManager.getConnection(databaseConnection);
+            con.setAutoCommit(false);
+            stmt = con.prepareStatement(loansQuery);
+            stmt.setInt(1, borrower);
+            stmt.setString(2, dewey);
+            stmt.executeUpdate();
+            stmt.clearParameters(); //Just in case...
+            stmt = con.prepareStatement(copiesQuery);
+            stmt.setBoolean(1, false);
+            stmt.setString(2, dewey);
+            con.commit();
+            stmt.close();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace(); //Currently unsure about error handling
+        }
+        finally
+        {
+            if (stmt != null)
+            {
+                try
+                {
+                    stmt.close();
+                }
+                catch (SQLException e2)
+                {
+                    e2.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void updateLoan(int borrower, String dewey, java.util.Date newDueDate)
+    {
+        String query = "UPDATE loans SET dueDate = ? WHERE borrowerID=? AND deweyID=?";
+        PreparedStatement stmt = null;
+        try
+        {
+            Connection con = DriverManager.getConnection(databaseConnection);
+            stmt = con.prepareStatement(query);
+            stmt.setDate(1, new java.sql.Date(newDueDate.getTime()));
+            stmt.setInt(2, borrower);
+            stmt.setString(3, dewey);
+            stmt.executeUpdate();
+            stmt.close();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if (stmt != null)
+            {
+                try
+                {
+                    stmt.close();
+                }
+                catch (SQLException e2)
+                {
+                    e2.printStackTrace();
+                }
+            }
+        }
     }
 
 //==============================================================
@@ -33,7 +136,7 @@ public class Mysql
 		ArrayList<Object> objects = this.getObjects(params, "borrowers");
 		ArrayList<Borrower> borrowers = new ArrayList<Borrower>();
 
-		//Cast it as a Loan object
+		//Cast it as a borrower object
 		for(int i=0; i<objects.size(); i++)
 		{
 			borrowers.add((Borrower)objects.get(i));
@@ -262,12 +365,6 @@ public class Mysql
 //==============================================================
 // SETTER METHODS
 //==============================================================
-
-    public void updateLoan(Hashtable<String, Object> details, java.util.Date newDate)
-    {
-        String query = "UPDATE loans SET date=" + newDate + " WHERE id=" +details.get("id") + " AND deweyID=" + details.get("deweyID");
-        runQuery(query);
-    }
 
     public void createReservation(Hashtable<String, Object> details)
     {
