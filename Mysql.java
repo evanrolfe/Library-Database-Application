@@ -8,7 +8,22 @@ javac *.java && java -cp connector.jar:. Mysql
 
 public class Mysql
 {
-    private String databaseConnection = "jdbc:mysql://localhost/team007?user=root&password=pass";
+    private String databaseConnection = "jdbc:mysql://stusql.dcs.shef.ac.uk/team007?user=team007&password=bf251b2e";
+
+    public void createLoan(Hashtable<String, Object> details)
+    {
+        String query = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
+                "VALUES (" + details.get("id") + ", " + details.get("deweyID") + ", " +
+                details.get("issueDate") + ", " + details.get("dueDate") + ");";
+        runQuery(query);
+    }
+
+    public void deleteLoan(int borrower, String dewey)
+    {
+        String query = "DELETE FROM loans WHERE borrowerID=" + borrower + " AND " +
+                "deweyID='" + dewey + "';";
+        runQuery(dewey);
+    }
 
 //==============================================================
 // BORROWERS GETTER METHODS

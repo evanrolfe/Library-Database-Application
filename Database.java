@@ -72,7 +72,7 @@ public class Database
 	/**
 	 * Return all LOANS in the database with a dewey id
 	 *
-	 * @param id	the dewey id 
+	 * @param String deweyid
 	 * @return ArrayList<Loan>
 	 */
 	public static Loan find_loans_by_deweyid(String deweyid) throws DataNotFoundException, InvalidArgumentException
