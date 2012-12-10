@@ -378,7 +378,7 @@ public class Mysql
 				//Instantiate the objects depending on which table has been selected
 				if(table_name == "loans")
 				{
-					objects.add(new Loan(result.getString("deweyID"), (java.util.Date) result.getDate("issueDate"), result.getInt("id")));				//Using java.util.Date to avoid conflict with java.sql.Date
+					objects.add(new Loan(result.getString("deweyID"), (java.util.Date) result.getDate("issueDate"), result.getInt("borrowerID")));				//Using java.util.Date to avoid conflict with java.sql.Date
 				}else if(table_name == "borrowers")
 				{
 					objects.add(new Borrower(result.getInt("id"), result.getString("forename"), result.getString("surname"), result.getString("email")));	
