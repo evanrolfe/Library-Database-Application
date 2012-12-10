@@ -8,7 +8,7 @@ javac *.java && java -cp connector.jar:. Mysql
 
 public class Mysql
 {
-    private String databaseConnection = "jdbc:mysql://localhost/team007?user=root&password=pass";
+    private String databaseConnection = "jdbc:mysql://stusql.dcs.shef.ac.uk/team007?user=team007&password=bf251b2e";
 
 //==============================================================
 // BORROWERS GETTER METHODS
