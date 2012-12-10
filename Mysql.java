@@ -8,7 +8,22 @@ javac *.java && java -cp connector.jar:. Mysql
 
 public class Mysql
 {
-    private String databaseConnection = "jdbc:mysql://localhost/team007?user=root&password=pass";
+    private String databaseConnection = "jdbc:mysql://stusql.dcs.shef.ac.uk/team007?user=team007&password=bf251b2e";
+
+    public void createLoan(Hashtable<String, Object> details)
+    {
+        String query = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
+                "VALUES (" + details.get("id") + ", " + details.get("deweyID") + ", " +
+                details.get("issueDate") + ", " + details.get("dueDate") + ");";
+        runQuery(query);
+    }
+
+    public void deleteLoan(int borrower, String dewey)
+    {
+        String query = "DELETE FROM loans WHERE borrowerID=" + borrower + " AND " +
+                "deweyID='" + dewey + "';";
+        runQuery(dewey);
+    }
 
 //==============================================================
 // BORROWERS GETTER METHODS
@@ -363,7 +378,7 @@ public class Mysql
 				//Instantiate the objects depending on which table has been selected
 				if(table_name == "loans")
 				{
-					objects.add(new Loan(result.getString("deweyID"), (java.util.Date) result.getDate("issueDate"), result.getInt("id")));				//Using java.util.Date to avoid conflict with java.sql.Date
+					objects.add(new Loan(result.getString("deweyID"), (java.util.Date) result.getDate("issueDate"), result.getInt("borrowerID")));				//Using java.util.Date to avoid conflict with java.sql.Date
 				}else if(table_name == "borrowers")
 				{
 					objects.add(new Borrower(result.getInt("id"), result.getString("forename"), result.getString("surname"), result.getString("email")));	
