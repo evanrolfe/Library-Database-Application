@@ -15,28 +15,23 @@ import java.util.Hashtable;
 
 import javax.swing.ButtonGroup;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.ListSelectionModel;
 
-public class GUISearchBP extends JPanel implements ActionListener, TableModelListener
+public class GUISearchBP extends JPanel implements ActionListener
 {
 	private Object[] bookTableHeadings = {"ISBN", "Title", "Author", "Publisher", "Date"};
 	private Object[] periodicalTableHeadings = {"ISSN", "Title", "Volume", "Number", "Publisher", "Date"};
 	private JTable resultsTable;
 	
+	private JTextField titleTextField, authorTextField, publisherTextField, volumeTextField, numberTextField, dateTextField;
 	private JRadioButton radioInBooks, radioInPeriodicals;
 	private JButton buttonSearch;
+	private final ButtonGroup buttonGroup = new ButtonGroup();
 	
 	private ArrayList<Item> searchResults;
-	
-	private int index;
-	
-	private JTextField titleTextField, authorTextField, publisherTextField, volumeTextField, numberTextField, dateTextField;
-	
+		
 	SpringLayout springLayout;
-	private final ButtonGroup buttonGroup = new ButtonGroup();
 	
 	public GUISearchBP() 
 	{
@@ -162,7 +157,6 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 		resultsTable.setAutoCreateRowSorter(true);
 		resultsTable.setShowVerticalLines(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		resultsTable.getModel().addTableModelListener(this);
 		resultsTable.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		
 		JScrollPane resultsScroll = new JScrollPane(resultsTable);
@@ -214,7 +208,8 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 			}
 		}
 			
-		try {
+		try 
+		{
 			if (radioInBooks.isSelected())
 			{
 				searchResults = db.getBooks(searchData);
@@ -224,10 +219,12 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 				searchResults = db.getPeriodicals(searchData);
 			}
 			
-		} catch (InvalidArgumentException e) 
+		} 
+		catch (InvalidArgumentException e) 
 		{
 			// TODO 
-		} catch (DataNotFoundException e)
+		} 
+		catch (DataNotFoundException e)
 		{
 			// TODO
 		}
@@ -267,14 +264,12 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 				newResults[i][5] = searchResults.get(i).date;
 			}
 			tableModel.setDataVector(newResults, periodicalTableHeadings);
-		}
-		
+		}	
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) 
 	{
-		
 		DefaultTableModel tableModel = (DefaultTableModel) resultsTable.getModel();
 		if (e.getSource() == buttonSearch)
 		{
@@ -289,15 +284,6 @@ public class GUISearchBP extends JPanel implements ActionListener, TableModelLis
 		{
 			Object[][] results = {{"", "", "", "", "", ""}};
 			tableModel = new DefaultTableModel(results, periodicalTableHeadings);
-		}
-		
-		
+		}	
 	}
-
-	@Override
-	public void tableChanged(TableModelEvent e) 
-	{
-		index = resultsTable.getSelectedRow();
-	}
-	
 }

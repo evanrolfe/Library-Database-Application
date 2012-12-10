@@ -5,7 +5,6 @@ import javax.swing.SpringLayout;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.JRadioButton;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -21,21 +20,20 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.ListSelectionModel;
-import java.awt.Component;
 
 public class GUISearchBorrower extends JPanel implements ActionListener, TableModelListener, ListSelectionListener
 {
 
 	private Object[] borrowerTableHeadings = {"Membership Number", "Forename", "Surname", "email"};
-	private JTable resultsTable;
+	private JTable resultsTable, borrowerLoans;
 	private Object[] loanHeadings = {"Membership Number", "Title", "Overdue"};
-	private JTable borrowerLoans;
-	private final ButtonGroup buttonGroup = new ButtonGroup();
-	private JTextField forenameTextField, surnameTextField, memNoTextField;
-	private JButton buttonSearch;
-	private ArrayList<Borrower> searchResults;
-	private JTextField emailTextField;
 	private int index;
+	
+	private final ButtonGroup buttonGroup = new ButtonGroup();
+	private JTextField forenameTextField, surnameTextField, memNoTextField, emailTextField;
+	private JButton buttonSearch;
+	
+	private ArrayList<Borrower> searchResults;
 	private Mysql db;
 	
 	public GUISearchBorrower() 
@@ -165,7 +163,8 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 			searchData.put("email", emailTextField.getText()); 
 		}
 		
-		try {
+		try 
+		{
 			searchResults = db.getBorrowers(searchData);
 		} 
 		catch (InvalidArgumentException e) 
@@ -204,7 +203,7 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 		Borrower b = null;
 		try
 		{
-			b = Database.find_borrower((int) tableModel.getValueAt(index, 0));
+			b = Database.find_borrower((Integer) tableModel.getValueAt(index, 0));
 		} 
 		catch (DataNotFoundException e1) 
 		{
@@ -263,7 +262,7 @@ public class GUISearchBorrower extends JPanel implements ActionListener, TableMo
 	@Override
 	public void valueChanged(ListSelectionEvent e) 
 	{
-
+		// TODO work?
 		if(index > -1)
 		{
 			populateResultsLoans();

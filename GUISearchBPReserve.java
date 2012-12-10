@@ -27,19 +27,16 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 	private Object[] bookTableHeadings = {"ISBN", "Title", "Author", "Publisher", "Date"};
 	private Object[] periodicalTableHeadings = {"ISSN", "Title", "Volume", "Number", "Publisher", "Date"};
 	private JTable resultsTable;
-	
-	private JRadioButton radioInBooks, radioInPeriodicals;
-	private JButton buttonSearch,buttonReserve;
-	
 	private int index;
 	
-	private ArrayList<Item> searchResults;
-	
-	private JTextField titleTextField, authorTextField, publisherTextField, volumeTextField, numberTextField, dateTextField;
-	
-	SpringLayout springLayout;
+	private JTextField titleTextField, authorTextField, publisherTextField, volumeTextField, numberTextField, dateTextField, memberIdTextField;
+	private JRadioButton radioInBooks, radioInPeriodicals;
+	private JButton buttonSearch,buttonReserve;
 	private final ButtonGroup buttonGroup = new ButtonGroup();
-	private JTextField memberIdTextField;
+	
+	private ArrayList<Item> searchResults;
+		
+	SpringLayout springLayout;
 	
 	public GUISearchBPReserve() 
 	{
@@ -234,34 +231,71 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 	
 	public void searchForData()
 	{
-		Hashtable<String, String> searchData = new Hashtable<String, String>();
-		searchData.put("title", titleTextField.getText());
-		searchData.put("publisher", publisherTextField.getText());
-		searchData.put("data", dateTextField.getText());
-
+		Hashtable<String, Object> searchData = new Hashtable<String, Object>();
+		Mysql db = new Mysql();
+		
+		if(!titleTextField.getText().isEmpty())
+		{
+			searchData.put("title", titleTextField.getText());
+		}
+		
+		if(!publisherTextField.getText().isEmpty())
+		{
+			searchData.put("publisher", publisherTextField.getText());
+		}
+		
+		if(!dateTextField.getText().isEmpty())
+		{
+			searchData.put("data", dateTextField.getText());
+		}
+		
 		if (radioInBooks.isSelected())
 		{
-			searchData.put("author", authorTextField.getText());
+			if(!authorTextField.getText().isEmpty())
+			{
+				searchData.put("author", authorTextField.getText());
+			}
 		}
 		else
 		{
-			searchData.put("volume", volumeTextField.getText());
-			searchData.put("number", numberTextField.getText());
+			if(!volumeTextField.getText().isEmpty())
+			{
+				searchData.put("volume", volumeTextField.getText());
+			}
+			
+			if(!numberTextField.getText().isEmpty())
+			{
+				searchData.put("number", numberTextField.getText());
+			}
 		}
-		
-		try {
-			searchResults = Database.find_items(searchData);
-		} catch (InvalidArgumentException e) 
+			
+		try 
+		{
+			if (radioInBooks.isSelected())
+			{
+				searchResults = db.getBooks(searchData);
+			}
+			else 
+			{
+				searchResults = db.getPeriodicals(searchData);
+			}
+			
+		} 
+		catch (InvalidArgumentException e) 
 		{
 			// TODO 
-		} catch (DataNotFoundException e)
+		} 
+		catch (DataNotFoundException e)
 		{
-			//TODO
+			// TODO
 		}
+		
+		populateResults();
 	}
 	
 	public void reserveItem()
 	{
+		// not sure if these if statements will work i.e. if list of books but periodicals selected
 		if (radioInBooks.isSelected())
 		{
 			String isbn = (String)resultsTable.getValueAt(index, 0);
@@ -321,8 +355,6 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 			Object[][] results = {{"", "", "", "", "", ""}};
 			tableModel = new DefaultTableModel(results, periodicalTableHeadings);
 		}
-		
-		populateResults();
 	}
 
 	@Override
