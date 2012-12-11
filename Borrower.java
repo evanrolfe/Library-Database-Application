@@ -111,10 +111,17 @@ public class Borrower
      * @return An array list of loans
      * @throws Exception If there's a database connection issue
      */
-	public ArrayList<Loan> getLoans() throws Exception
+	public ArrayList<Loan> getLoans()
 	{
-		//Use this instance of borrower to find the corresponding loans using static database class method.
-		return Database.find_loans(this.id);
+		//Initialise array list containing all of the overdue loans a borrower holds.
+		try
+		{
+			//Use this instance of borrower to find the corresponding loans using static database class method.
+			return Database.find_loans(this.id);
+		}catch(Exception e)
+		{
+			return new ArrayList<Loan>();
+		}
 	}
 
 	//Check if the borrower has any loans whcih are overdue.
@@ -124,13 +131,20 @@ public class Borrower
      * @return True if there is at least one loan, false otherwise
      * @throws Exception If there's some database connection issue
      */
-	public boolean hasLoansOverDue() throws Exception
+	public boolean hasLoansOverDue()
 	{
 		//Initialise array list containing all of the overdue loans a borrower holds.
-		ArrayList<Loan> overDueLoans = this.getOverdueLoans();
+		try
+		{
+			ArrayList<Loan> overDueLoans = this.getOverdueLoans();
+			return overDueLoans.size() > 0;
+		}catch(Exception e)
+		{
+			return false;
+		}
 
 		//If the array list is not empty the borrower has overdue loans otherwise this is false.
-		return overDueLoans.size() > 0;
+
 	}
 
     /**

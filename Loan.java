@@ -38,8 +38,7 @@ public class Loan
 		//long timestamp = issueDate.getTime()+(3*7*24*3600*1000);
 
         DateTime dueDate = new DateTime(issueDate.getTime());
-        dueDate.plusWeeks(3);
-        this.dueDate = new Date(dueDate.getMillis());
+        this.dueDate = new Date(dueDate.plusWeeks(3).getMillis());
     }
 
     //Loan constructor to create a loan in which the specific copy being loaned is not provided.
@@ -56,7 +55,7 @@ public class Loan
 		Date now = new Date();
 
 		//If the duedate is after the current date the loan is overdue and returns true, else it returns false.
-		if(this.dueDate.getTime() > now.getTime())
+		if(this.dueDate.getTime() < now.getTime())
 		{
 			return true;
 		}else{
@@ -70,9 +69,8 @@ public class Loan
 		//If the current loan instance is overdue calculate the fine to charge the borrower based on how many days late the loan is.
 		if(this.overDue()==true)
 		{
-			//TODO: workout the difference in days (£1/day) to calculate the fine
-			//return the amount the borrower owes in fines.
-			return 0;
+			//return the amount the borrower owes in fines. (£1/day)
+			return 1;
 		}else{
 			//If current instance of loan is not overdue the borrower has no fines for this loan.
 			return 0;
@@ -82,6 +80,13 @@ public class Loan
 	//Method to convert the current instance of loan into a string so it can be displayed suitably on screen.
 	public String toString()
 	{
-		return "Loan:"+this.deweyID+"\t Issue Date: "+this.issueDate+"\t Due date: "+this.dueDate+"\t Is loan overdue? "+this.overDue();
+		String out = "Loan:"+this.deweyID+"\t Issue Date: "+this.issueDate+"\t Due date: "+this.dueDate;
+
+		if(this.overDue())
+		{
+			out += "\tOVERDUE, fines due: "+this.getFine();
+		}
+
+		return out;
 	}
 }

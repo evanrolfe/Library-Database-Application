@@ -20,7 +20,7 @@ public class Mysql
      * @param issueDate The issueDate of the loan
      * @param dueDate When the loan is due
      */
-    public void addLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate) throws SQLException
+    public void addLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate) throws SQLException, LibraryRulesException, DataNotFoundException
     {
         PreparedStatement stmt = null; //Prepared statements mean that it does most of the hard work for us
         //Generate queries
@@ -28,6 +28,25 @@ public class Mysql
         String loansQuery = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
                 "VALUES (?, ?, ?, ?);";
         String errorMessage = null;
+
+		try
+		{
+			Borrower borrower = this.getBorrower(id);
+
+			if(borrower.getLoans().size() >= 6)
+				throw new LibraryRulesException("The borrower id #"+id+" has reached their limit of 6 loans!");
+
+			if(borrower.hasLoansOverDue()==true)
+				throw new LibraryRulesException("The borrower id #"+id+" has some loans which are overdue!");
+
+		}catch(DataNotFoundException e)
+		{
+			throw new DataNotFoundException("Error: trying to create a loan for borrower with id: "+id+", but no borrower exists for that id!");
+		}catch(InvalidArgumentException e1)
+		{
+			
+		}
+
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);

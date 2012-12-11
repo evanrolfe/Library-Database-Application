@@ -1,4 +1,11 @@
-//Exception class which deals with constructing all the custom exceptions.
+class LibraryRulesException extends Exception {
+
+	public LibraryRulesException(String message) 
+	{
+		super(message);
+	}
+	
+}
 
 //Invalidargumentss exception deals with exceptions where a method is not given compatible arguments.
 class InvalidArgumentException extends Exception {

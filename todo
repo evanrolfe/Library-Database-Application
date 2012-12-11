@@ -1,0 +1,4 @@
+1. Sort out Copy.getLoan()
+2. Test Loan.overDue()
+3. Write javadocs for Mysql methods
+4. Sort out Loan.getFine()

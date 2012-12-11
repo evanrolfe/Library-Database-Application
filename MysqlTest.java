@@ -94,6 +94,7 @@ public class MysqlTest
 
 		System.out.println(db.getBorrower(1000001));
 		System.out.println("=====================================");
+*/
 
 		//TESTING LOANS
 		System.out.println("TESTING LOANS\n");
@@ -106,7 +107,7 @@ public class MysqlTest
 		{
 			System.out.println(loans.get(i));
 		}
-*/
+
 		System.out.println(db.getCopy("524.124.125.5"));
 	}	
 
