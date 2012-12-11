@@ -1,5 +1,6 @@
+import org.joda.time.DateTime;
+
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.Hashtable;
 /*
  * Run on command line using:
@@ -38,7 +39,7 @@ public class MysqlTest
         Hashtable<String, Object> details = new Hashtable<String, Object>();
         details.put("issn", 52411241);
         details.put("borrowerID", 1000001);
-        details.put("date", new Date());
+        details.put("date", new DateTime());
         db.addReservation(details);
     }
     catch (LibraryRulesException e)

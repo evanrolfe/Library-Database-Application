@@ -465,10 +465,9 @@ public class Mysql
      * Adds a new reservation to the database.
      * @param details A hashtable of all the details. It expects the following keys:
      *                <ul>
-     *                <li>"borrowerID"</li>
-     *                <li>"isbn"</li>
-     *                <li>"issn"</li>
-     *                <li>"date"</li></ul>
+     *                <li>"borrowerID" -> int</li>
+     *                <li>"isbn" -> int</li>
+     *                <li>"issn" -> int</li>
      *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
      *                as a value to the "isbn" key.
      */
@@ -552,8 +551,8 @@ public class Mysql
                 stmt.setInt(2, 0);
             }
             stmt.setInt(1,Integer.parseInt(details.get("borrowerID").toString()));
-            java.util.Date date = (java.util.Date) details.get("date");
-            stmt.setDate(4, new java.sql.Date(date.getTime()));
+            DateTime date = DateTime.now();
+            stmt.setTimestamp(4, new Timestamp(date.getMillis()));
             //Add to database
             stmt.executeUpdate();
         }
