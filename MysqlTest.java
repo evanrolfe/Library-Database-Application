@@ -16,8 +16,6 @@ public class MysqlTest
 //========================================
 //	VALIDATION TESTS
 //========================================
-	
-	db.addLoan(1000006,"124.452.767.5", new java.util.Date(), new java.util.Date());
 
 //COMPLETED: Mysql.addLoan() (borrower cannot have more than 6 loans, and no laons overdue)
 //EVAN: Mysql.addLoan() - copy must not be reference only
@@ -39,7 +37,7 @@ public class MysqlTest
     {
         Hashtable<String, Object> details = new Hashtable<String, Object>();
         details.put("issn", 52411241);
-        details.put("id", 1000001);
+        details.put("borrowerID", 1000001);
         details.put("date", new Date());
         db.addReservation(details);
     }

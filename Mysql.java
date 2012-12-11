@@ -464,16 +464,16 @@ public class Mysql
         String query = "INSERT INTO reservations(borrowerID, isbn, issn, date) VALUES (?, ?, ?, ?)";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
-        ArrayList<Copy> copies = new ArrayList<Copy>();
+        ArrayList<Copy> copies;
         try
         {
             if (details.containsKey("isbn"))
             {
-                copies = Database.find_copies_by_isbn((String) details.get("isbn"));
+                copies = Database.find_copies_by_isbn(details.get("isbn").toString());
             }
             else
             {
-                copies = Database.find_copies_by_issn((String) details.get("issn"));
+                copies = Database.find_copies_by_issn(details.get("issn").toString());
             }
         }
         catch (InvalidArgumentException e)
@@ -530,15 +530,15 @@ public class Mysql
             //Give isbn and issn the right values in the database
             if (details.containsKey("isbn"))
             {
-                stmt.setInt(2, Integer.parseInt((String) details.get("isbn")));
+                stmt.setInt(2, Integer.parseInt(details.get("isbn").toString()));
                 stmt.setInt(3, 0);
             }
             else
             {
-                stmt.setInt(3, Integer.parseInt((String)details.get("issn")));
+                stmt.setInt(3, Integer.parseInt((String)details.get("issn").toString()));
                 stmt.setInt(2, 0);
             }
-            stmt.setInt(1,Integer.parseInt((String)details.get("borrowerID")));
+            stmt.setInt(1,Integer.parseInt(details.get("borrowerID").toString()));
             java.util.Date date = (java.util.Date) details.get("date");
             stmt.setDate(4, new java.sql.Date(date.getTime()));
             //Add to database
