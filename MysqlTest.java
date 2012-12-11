@@ -1,5 +1,7 @@
-import java.util.*;
-import java.sql.*;
+import org.joda.time.DateTime;
+
+import java.sql.SQLException;
+import java.util.Hashtable;
 /*
  * Run on command line using:
 javac *.java && java -cp connector.jar:. MysqlTest
@@ -30,6 +32,7 @@ public class MysqlTest
 		System.out.println(e);
 	}
 
+
 //COMPLETED: EVAN: Mysql.addLoan() - copy must not be reference only
 
 	//Test: copy with deweyID: 823.452.767.7 is marked as reference only in the database so this should throw a LibraryRulesException
@@ -56,6 +59,22 @@ public class MysqlTest
 /*
 - PADDY: Mysql.addReservation() - if no free copies then recall 
 */
+    try
+    {
+        Hashtable<String, Object> details = new Hashtable<String, Object>();
+        details.put("issn", 52411241);
+        details.put("borrowerID", 1000001);
+        details.put("date", new DateTime());
+        db.addReservation(details);
+    }
+    catch (LibraryRulesException e)
+    {
+        System.out.println(e);
+    }
+    catch (SQLException e)
+    {
+        System.out.println(e);
+    }
 
 /*
 - EVAN: Renewing a loan: Mysql.updateLoan()
@@ -71,6 +90,14 @@ public class MysqlTest
 	-if Loan.getFine() > 0 then display popup with fines, then still delete the loan
 */
 
+        try
+        {
+            db.deleteLoan("823.452.767.5");
+        }
+        catch (LibraryRulesException e)
+        {
+            System.out.println(e);
+        }
 
 		//Borrower b = db.getBorrower(1000001);
 		//System.out.println(b.forename);

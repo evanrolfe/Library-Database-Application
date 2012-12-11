@@ -115,14 +115,23 @@ public class Mysql
      * Delete a loan from a borrower
      * @param dewey The dewey id of the copy
      */
-    public void deleteLoan(String dewey) throws SQLException
+    public void deleteLoan(String dewey) throws SQLException, LibraryRulesException, DataNotFoundException
     {
         String loansQuery = "DELETE FROM loans WHERE deweyID=?";
         String copiesQuery = "UPDATE copies SET onLoan = ? AND deweyID = ?";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
         //Check if borrower has overdue fines and throw an error if this is the case
-        //Have to be a bit of douche
+        int totalFine;
+        try
+        {
+            Loan loan = Database.find_loans_by_deweyid(dewey);
+            totalFine = loan.getFine();
+        }
+        catch (InvalidArgumentException e)
+        {
+            throw new SQLDataException(e.getMessage());
+        }
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
@@ -162,6 +171,10 @@ public class Mysql
         if (errorMessage != null)
         {
             throw new SQLException(errorMessage);
+        }
+        if (totalFine>0)
+        {
+            throw new LibraryRulesException("You owe a fine of £" + totalFine + ".");
         }
     }
 
@@ -465,10 +478,9 @@ public class Mysql
      * Adds a new reservation to the database.
      * @param details A hashtable of all the details. It expects the following keys:
      *                <ul>
-     *                <li>"borrowerID"</li>
-     *                <li>"isbn"</li>
-     *                <li>"issn"</li>
-     *                <li>"date"</li></ul>
+     *                <li>"borrowerID" -> int</li>
+     *                <li>"isbn" -> int</li>
+     *                <li>"issn" -> int</li>
      *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
      *                as a value to the "isbn" key.
      */
@@ -477,22 +489,23 @@ public class Mysql
         String query = "INSERT INTO reservations(borrowerID, isbn, issn, date) VALUES (?, ?, ?, ?)";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
-        ArrayList<Copy> copies = new ArrayList<Copy>();
+        ArrayList<Copy> copies;
         try
         {
             if (details.containsKey("isbn"))
             {
-                copies = Database.find_copies_by_isbn((String) details.get("isbn"));
+                copies = Database.find_copies_by_isbn(details.get("isbn").toString());
             }
             else
             {
-                copies = Database.find_copies_by_issn((String) details.get("issn"));
+                copies = Database.find_copies_by_issn(details.get("issn").toString());
             }
         }
         catch (InvalidArgumentException e)
         {
             throw new SQLDataException(e.getMessage());
         }
+
         boolean canReserve = false;
         ArrayList<Loan> loans = new ArrayList<Loan>();
         try
@@ -507,7 +520,10 @@ public class Mysql
                     }
                     catch (DataNotFoundException e)
                     {
-                        canReserve = true;
+                        if (!copy.referenceOnly)
+                        {
+                            canReserve = true;
+                        }
                     }
                 }
             }
@@ -539,17 +555,17 @@ public class Mysql
             //Give isbn and issn the right values in the database
             if (details.containsKey("isbn"))
             {
-                stmt.setInt(2, Integer.parseInt((String) details.get("isbn")));
+                stmt.setInt(2, Integer.parseInt(details.get("isbn").toString()));
                 stmt.setInt(3, 0);
             }
             else
             {
-                stmt.setInt(3, Integer.parseInt((String)details.get("issn")));
+                stmt.setInt(3, Integer.parseInt((String)details.get("issn").toString()));
                 stmt.setInt(2, 0);
             }
-            stmt.setInt(1,Integer.parseInt((String)details.get("borrowerID")));
-            java.util.Date date = (java.util.Date) details.get("date");
-            stmt.setDate(4, new java.sql.Date(date.getTime()));
+            stmt.setInt(1,Integer.parseInt(details.get("borrowerID").toString()));
+            DateTime date = DateTime.now();
+            stmt.setTimestamp(4, new Timestamp(date.getMillis()));
             //Add to database
             stmt.executeUpdate();
         }
