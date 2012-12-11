@@ -487,6 +487,7 @@ public class Mysql
         {
             throw new SQLDataException(e.getMessage());
         }
+
         boolean canReserve = false;
         ArrayList<Loan> loans = new ArrayList<Loan>();
         try
@@ -501,7 +502,10 @@ public class Mysql
                     }
                     catch (DataNotFoundException e)
                     {
-                        canReserve = true;
+                        if (!copy.referenceOnly)
+                        {
+                            canReserve = true;
+                        }
                     }
                 }
             }

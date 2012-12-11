@@ -1,5 +1,6 @@
-import java.util.*;
-import java.sql.*;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.Hashtable;
 /*
  * Run on command line using:
 javac *.java && java -cp connector.jar:. MysqlTest
@@ -34,6 +35,18 @@ public class MysqlTest
 /*
 - PADDY: Mysql.addReservation() - if no free copies then recall 
 */
+    try
+    {
+        Hashtable<String, Object> details = new Hashtable<String, Object>();
+        details.put("issn", 52411241);
+        details.put("id", 1000001);
+        details.put("date", new Date());
+        db.addReservation(details);
+    }
+    catch (LibraryRulesException e)
+    {
+        System.out.println(e);
+    }
 
 /*
 - EVAN: Renewing a loan: Mysql.updateLoan()
