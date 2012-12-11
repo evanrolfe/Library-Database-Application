@@ -78,12 +78,30 @@ public class MysqlTest
     }
 
 /*
-- EVAN: Renewing a loan: Mysql.updateLoan()
+- PADDY: Renewing a loan: Mysql.updateLoan()
 
 	-can only renew if the loan has not been recalled
 	-and the borrower has not overdue loans
 */
-
+    //renew if recalled
+    try
+    {
+        db.renewLoan(1000006, "124.452.767.5");
+    }
+    catch (Exception e)
+    {
+        System.out.println(e);
+    }
+        //renew when overdue
+    try
+    {
+        System.out.println("Renewing loan with overdue loans");
+        db.renewLoan(1000001, "823.452.767.7");
+    }
+    catch (Exception e)
+    {
+        System.out.println(e);
+    }
 /*
 - PADDY: Discharging a loan: Mysql.deleteLoan()
 
@@ -95,7 +113,7 @@ public class MysqlTest
         {
             db.deleteLoan("823.452.767.5");
         }
-        catch (LibraryRulesException e)
+        catch (Exception e)
         {
             System.out.println(e);
         }

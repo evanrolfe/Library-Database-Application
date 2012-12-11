@@ -68,7 +68,7 @@ public class Loan
 		Date now = new Date();
 
 		//If the duedate is after the current date the loan is overdue and returns true, else it returns false.
-		if(this.dueDate.getTime() < now.getTime())
+		if(now.after(dueDate))
 		{
 			return true;
 		}else{
