@@ -113,14 +113,23 @@ public class Mysql
      * Delete a loan from a borrower
      * @param dewey The dewey id of the copy
      */
-    public void deleteLoan(String dewey) throws SQLException
+    public void deleteLoan(String dewey) throws SQLException, LibraryRulesException, DataNotFoundException
     {
         String loansQuery = "DELETE FROM loans WHERE deweyID=?";
         String copiesQuery = "UPDATE copies SET onLoan = ? AND deweyID = ?";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
         //Check if borrower has overdue fines and throw an error if this is the case
-        //Have to be a bit of douche
+        int totalFine;
+        try
+        {
+            Loan loan = Database.find_loans_by_deweyid(dewey);
+            totalFine = loan.getFine();
+        }
+        catch (InvalidArgumentException e)
+        {
+            throw new SQLDataException(e.getMessage());
+        }
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
@@ -160,6 +169,10 @@ public class Mysql
         if (errorMessage != null)
         {
             throw new SQLException(errorMessage);
+        }
+        if (totalFine>0)
+        {
+            throw new LibraryRulesException("You owe a fine of £" + totalFine + ".");
         }
     }
 

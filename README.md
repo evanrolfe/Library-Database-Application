@@ -8,7 +8,7 @@ Things to Validate
 - EVAN: Mysql.addLoan() - no outstanding reservations unless they themselves have reserved it
 -
 
-- PADDY: Mysql.addReservation() - if no free copies then recall
+- COMPLETED PADDY: Mysql.addReservation() - if no free copies then recall
  
 	-check that its a valid borrower ID
 
@@ -17,7 +17,7 @@ Things to Validate
 	-can only renew if the loan has not been recalled
 	-and the borrower has not overdue loans
 
-- PADDY: Discharging a loan: Mysql.deleteLoan()
+- COMPLETED PADDY: Discharging a loan: Mysql.deleteLoan()
 
 	-copy must be on loan
 	-if Loan.getFine() > 0 then display popup with fines, then still delete the loan

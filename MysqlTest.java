@@ -45,6 +45,10 @@ public class MysqlTest
     {
         System.out.println(e);
     }
+    catch (SQLException e)
+    {
+        System.out.println(e);
+    }
 
 /*
 - EVAN: Renewing a loan: Mysql.updateLoan()
@@ -60,6 +64,14 @@ public class MysqlTest
 	-if Loan.getFine() > 0 then display popup with fines, then still delete the loan
 */
 
+        try
+        {
+            db.deleteLoan("823.452.767.5");
+        }
+        catch (LibraryRulesException e)
+        {
+            System.out.println(e);
+        }
 
 		//Borrower b = db.getBorrower(1000001);
 		//System.out.println(b.forename);
