@@ -2,6 +2,7 @@ import org.joda.time.DateTime;
 
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 
 /*
  * Run on command line using:
@@ -176,15 +177,25 @@ public class Mysql
         }
     }
 
+    public void renewLoan(int borrower, String dewey)
+    {
+        //EMPTY METHOD
+    }
+
     /**
      * Updates a loan and sets the new dueDate
      * @param borrower The borrower's id
      * @param dewey The dewey id of the loaned copy
      * @param newDueDate The new dueDate for the loan
+     * @param recall If the loan is to be recalled
      */
-    public void updateLoan(int borrower, String dewey, java.util.Date newDueDate) throws SQLException
+    private void updateLoan(int borrower, String dewey, java.util.Date newDueDate, boolean recall) throws SQLException
     {
         String query = "UPDATE loans SET dueDate = ? WHERE borrowerID=? AND deweyID=?";
+        if(recall)
+        {
+            query = "UPDATE loans SET dueDate = ?, recalled = 1 WHERE borrowerID=? AND deweyID=?";
+        }
         PreparedStatement stmt = null;
         String errorMessage = null;
         try
@@ -533,7 +544,7 @@ public class Mysql
             }
             DateTime newDueDate = new DateTime();
             newDueDate = newDueDate.plusWeeks(1);
-            updateLoan(earliestLoan.borrower_id, earliestLoan.deweyID, new java.util.Date(newDueDate.getMillis()));
+            recallLoan(earliestLoan.borrower_id, earliestLoan.deweyID, new java.util.Date(newDueDate.getMillis()));
         }
         try
         {
@@ -583,6 +594,11 @@ public class Mysql
         {
             throw new LibraryRulesException("Your copy has been reserved, but all copies are on loan. Please wait a week");
         }
+    }
+
+    private void recallLoan(int borrowerID, String deweyID, Date date) throws SQLException
+    {
+        updateLoan(borrowerID, deweyID, date, true);
     }
 
     /**
