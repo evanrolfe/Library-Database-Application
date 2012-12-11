@@ -1,4 +1,5 @@
-import java.util.*;
+import org.joda.time.DateTime;
+import java.util.Date;
 
 //Loan class to  handle creation of loan objects and methods manipulating a current instance of the loan class.
 public class Loan 
@@ -25,16 +26,17 @@ public class Loan
 		this.item = copy.item;
 		this.copy = copy;
 
-		if(item.getType() == "Book")
+		if(item.getType().equals("Book"))
 		{
 			this.book_isbn = item.isbn;			
-		}else if(item.getType() == "Periodical")
+		}
+        else if(item.getType().equals("Periodical"))
 		{
 			this.periodical_issn = item.issn;			
 		}
-
-		long timestamp = issueDate.getTime()+(3*7*24*3600*1000);
-		this.dueDate = new Date(timestamp);
+        DateTime dueDate = new DateTime(issueDate.getTime());
+        dueDate.plusWeeks(3);
+        this.dueDate = new Date(dueDate.get);//TODO: Fix
     }
 
     //Loan constructor to create a loan in which the specific copy being loaned is not provided.
