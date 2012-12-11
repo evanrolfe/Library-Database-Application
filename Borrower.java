@@ -1,6 +1,8 @@
 import java.util.*;
 
-// The Borrower class handles all actions which relate to a particular borrower.
+/**
+ * A borrower class, that handles all things relating to a borrower.
+ */
 public class Borrower
 {
 
