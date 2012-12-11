@@ -1,7 +1,7 @@
 import java.util.*;
 
 /**
- * A borrower class, that handles all things relating to a borrower.
+ * A borrower class that handles all things relating to a borrower.
  */
 public class Borrower
 {
