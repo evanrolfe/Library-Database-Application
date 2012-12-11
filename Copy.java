@@ -73,7 +73,7 @@ public class Copy
 
     /**
      * Gets the item that this copy relates to
-     * @return
+     * @return The item this copy relates to
      */
 	public Item getItem()
 	{
@@ -82,7 +82,7 @@ public class Copy
 
     /**
      * Checks whether this copy is on loan or not
-     * @return
+     * @return True if this copy is on loan, false otherwise
      */
 	public boolean onLoan()
 	{
