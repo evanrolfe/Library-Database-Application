@@ -38,11 +38,15 @@ public class Mysql
 
 			if(borrower.hasLoansOverDue()==true)
 				throw new LibraryRulesException("The borrower id #"+id+" has some loans which are overdue!");
-
-		}catch(DataNotFoundException e)
+            // Check copy isn't a reference only
+            // Check copy isn't on loan
+            // Check isn't reserved by ANOTHER borrower
+		}
+        catch(DataNotFoundException e)
 		{
 			throw new DataNotFoundException("Error: trying to create a loan for borrower with id: "+id+", but no borrower exists for that id!");
-		}catch(InvalidArgumentException e1)
+		}
+        catch(InvalidArgumentException e1)
 		{
 			
 		}
@@ -106,6 +110,8 @@ public class Mysql
         String copiesQuery = "UPDATE copies SET onLoan = ? AND deweyID = ?";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
+        //Check if borrower has overdue fines and throw an error if this is the case
+        //Have to be a bit of douche
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
@@ -449,6 +455,7 @@ public class Mysql
         String query = "INSERT INTO reservations(borrowerID, isbn, issn, date) VALUES (?, ?, ?, ?)";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
+        //If there are no free copies, recall earliest loan (dueDate becomes week today)
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
@@ -656,7 +663,7 @@ public class Mysql
                     }else{
                         item = this.getBook(isbn);
                     }
-                    objects.add(new Copy(dewey, reference, item, onLoan));
+                    objects.add(new Copy(dewey, reference, item));
                 }else if(table_name.equals("books"))
                 {
                     objects.add(new Item(""+result.getInt("isbn"), result.getString("title"), result.getString("author"), result.getString("publisher"), (java.util.Date) result.getDate("date")));
