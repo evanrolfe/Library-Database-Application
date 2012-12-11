@@ -464,11 +464,39 @@ public class Mysql
      *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
      *                as a value to the "isbn" key.
      */
-    public void addReservation(Hashtable<String, Object> details) throws SQLException
+    public void addReservation(Hashtable<String, Object> details) throws SQLException, LibraryRulesException, DataNotFoundException
     {
         String query = "INSERT INTO reservations(borrowerID, isbn, issn, date) VALUES (?, ?, ?, ?)";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
+        /*ArrayList<Copy> copies = new ArrayList<Copy>();
+        try
+        {
+            if (details.containsKey("isbn"))
+            {
+                copies = Database.find_copies_by_isbn((String) details.get("isbn"));
+            }
+            else
+            {
+                copies = Database.find_copies_by_issn((String) details.get("issn"));
+            }
+        }
+        catch (InvalidArgumentException e)
+        {
+            throw new SQLDataException(e.getMessage());
+        }
+        try
+        {
+            for (Copy copy: copies)
+            {
+                if (Database.find_loans_by_deweyid(copy.deweyIndex));
+            }
+        }
+        catch (InvalidArgumentException e)
+        {
+            throw new SQLClientInfoException(e.getMessage());
+        }
+                                                                   */
         //If there are no free copies, recall earliest loan (dueDate becomes week today)
         try
         {
@@ -478,12 +506,12 @@ public class Mysql
             if (details.containsKey("isbn"))
             {
                 stmt.setInt(2, Integer.parseInt((String) details.get("isbn")));
-                stmt.setNull(3, Types.INTEGER);
+                stmt.setInt(3, 0);
             }
             else
             {
-                stmt.setInt(3, (Integer)details.get("issn"));
-                stmt.setNull(2, Types.INTEGER);
+                stmt.setInt(3, Integer.parseInt((String)details.get("issn")));
+                stmt.setInt(2, 0);
             }
             stmt.setInt(1,Integer.parseInt((String)details.get("borrowerID")));
             java.util.Date date = (java.util.Date) details.get("date");
@@ -646,7 +674,9 @@ public class Mysql
                 stmt.close();
 
                 //If no search parameters have been specified then return all rows
-            }else{
+            }
+            else
+            {
                 query = "SELECT * FROM `"+table_name+"`";
             }
             //4. Execute the query and instantiate the relevant objects from the results data
