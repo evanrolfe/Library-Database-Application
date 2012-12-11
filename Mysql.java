@@ -44,15 +44,9 @@ public class Mysql
 			if(copy.referenceOnly==true)
 				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is reference only!");
 
-            // Check copy isn't on loan
-			if(copy.onLoan()==false)
-				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is not marked as on loan!");
-
             // Check isn't reserved by ANOTHER borrowers
 			//Identify the related book/periodical (Item)
 			ArrayList<Reservation> reservations = Database.find_reservations(copy.item);
-
-			//Also validate deweyID is valid
 			
 		
 		}
