@@ -2,6 +2,7 @@ import org.joda.time.DateTime;
 
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 
 /*
  * Run on command line using:
@@ -178,26 +179,45 @@ public class Mysql
         }
     }
 
+    public void renewLoan(int borrowerID, String dewey) throws Exception
+    {
+        //VALIDATIN
+
+        //can only renew if the loan has not been recalled
+
+        //and the borrower has not overdue loans
+        Borrower borrower = null;
+        try
+        {
+            borrower = this.getBorrower(borrowerID);
+        }
+        catch (DataNotFoundException e)
+        {
+            e.printStackTrace();  //AUTOGEN
+        }
+        catch (InvalidArgumentException e)
+        {
+            e.printStackTrace();  //AUTOGEN
+        }
+
+        if(borrower.getCopiesOverDue().size() > 0)
+            throw new LibraryRulesException("That borrower already has overdue loans!");
+    }
+
     /**
      * Updates a loan and sets the new dueDate
-     * @param borrower The borrower's id
+     * @param borrowerID The borrower's id
      * @param dewey The dewey id of the loaned copy
      * @param newDueDate The new dueDate for the loan
+     * @param recall If the loan is to be recalled
      */
-    public void updateLoan(int borrower, String dewey, java.util.Date newDueDate) throws SQLException
+    private void updateLoan(int borrowerID, String dewey, java.util.Date newDueDate, boolean recall) throws SQLException
     {
-		//VALIDATIN
-
-		//can only renew if the loan has not been recalled
-
-		//and the borrower has not overdue loans
-		Borrower borrower = this.getBorrower(borrower);
-
-		if(borrower.getCopiesOverDue().size() > 0)
-			throw new LibraryRulesException("That borrower already has overdue loans!");
-
-
         String query = "UPDATE loans SET dueDate = ? WHERE borrowerID=? AND deweyID=?";
+        if(recall)
+        {
+            query = "UPDATE loans SET dueDate = ?, recalled = 1 WHERE borrowerID=? AND deweyID=?";
+        }
         PreparedStatement stmt = null;
         String errorMessage = null;
         try
@@ -206,7 +226,7 @@ public class Mysql
             stmt = con.prepareStatement(query);
             //Assign the parameters for the query
             stmt.setDate(1, new java.sql.Date(newDueDate.getTime()));
-            stmt.setInt(2, borrower);
+            stmt.setInt(2, borrowerID);
             stmt.setString(3, dewey);
             //Execute the query
             stmt.executeUpdate();
@@ -546,7 +566,7 @@ public class Mysql
             }
             DateTime newDueDate = new DateTime();
             newDueDate = newDueDate.plusWeeks(1);
-            updateLoan(earliestLoan.borrower_id, earliestLoan.deweyID, new java.util.Date(newDueDate.getMillis()));
+            recallLoan(earliestLoan.borrower_id, earliestLoan.deweyID, new java.util.Date(newDueDate.getMillis()));
         }
         try
         {
@@ -596,6 +616,11 @@ public class Mysql
         {
             throw new LibraryRulesException("Your copy has been reserved, but all copies are on loan. Please wait a week");
         }
+    }
+
+    private void recallLoan(int borrowerID, String deweyID, Date date) throws SQLException
+    {
+        updateLoan(borrowerID, deweyID, date, true);
     }
 
     /**
