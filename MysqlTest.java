@@ -99,7 +99,7 @@ public class MysqlTest
 		//TESTING LOANS
 		System.out.println("TESTING LOANS\n");
 		Hashtable<String,Object> params5 = new Hashtable<String,Object>();
-		params5.put("id", 1);
+		params5.put("borrowerID", 1);
 		//params.put("deweyID","2");
 
 		ArrayList<Loan> loans = db.getLoans(params5);
@@ -109,7 +109,5 @@ public class MysqlTest
 		{
 			System.out.println(loans.get(i));
 		}
-
-		System.out.println(db.getLoan(1));
-	}	
+	}
 }

@@ -36,7 +36,7 @@ public class Loan
 		}
         DateTime dueDate = new DateTime(issueDate.getTime());
         dueDate.plusWeeks(3);
-        this.dueDate = new Date(dueDate.get);//TODO: Fix
+        this.dueDate = new Date(dueDate.getMillis());
     }
 
     //Loan constructor to create a loan in which the specific copy being loaned is not provided.
