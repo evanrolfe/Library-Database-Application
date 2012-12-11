@@ -188,7 +188,7 @@ public class Mysql
         }
         if (totalFine>0)
         {
-            throw new LibraryRulesException("You owe a fine of £" + totalFine + ".");
+            throw new LibraryRulesException("You owe a fine of " + totalFine + " GBP.");
         }
     }
 
