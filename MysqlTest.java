@@ -9,7 +9,7 @@ javac *.java && java -cp connector.jar:. MysqlTest
 public class MysqlTest
 {
 
-	public static void main(String[] args) throws SQLException, DataNotFoundException, InvalidArgumentException
+	public static void main(String[] args) throws SQLException, DataNotFoundException, InvalidArgumentException, LibraryRulesException
 	{
 		Mysql db = new Mysql();
 
@@ -17,7 +17,7 @@ public class MysqlTest
 //	VALIDATION TESTS
 //========================================
 	
-
+	db.addLoan(1000006,"124.452.767.5", new java.util.Date(), new java.util.Date());
 
 //COMPLETED: Mysql.addLoan() (borrower cannot have more than 6 loans, and no laons overdue)
 //EVAN: Mysql.addLoan() - copy must not be reference only

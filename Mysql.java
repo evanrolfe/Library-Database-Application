@@ -5,7 +5,7 @@ import java.util.*;
 
 /*
  * Run on command line using:
-javac *.java && java -cp connector.jar:. Mysql
+javac -cp joda.jar:. *.java && java -cp connector.jar:joda.jar:. MysqlTest
  */
 
 public class Mysql
@@ -46,21 +46,14 @@ public class Mysql
 			if(copy.referenceOnly==true)
 				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is reference only!");
 
-            // Check copy isn't on loan
-			if(copy.onLoan()==false)
-				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is not marked as on loan!");
-
+			//
+			if(copy.onLoan()==true)
+				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is already on loan!");
             // Check isn't reserved by ANOTHER borrowers
 			//Identify the related book/periodical (Item)
 			ArrayList<Reservation> reservations = Database.find_reservations(copy.item);
-
-			//Also validate deweyID is valid
-			
+			System.out.println(reservations.size());
 		
-		}
-        catch(DataNotFoundException e)
-		{
-			throw new DataNotFoundException("Error: trying to create a loan for borrower with id: "+id+", but no borrower exists for that id!");
 		}
         catch(InvalidArgumentException e1)
 		{
