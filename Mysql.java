@@ -79,12 +79,11 @@ public class Mysql
 
     /**
      * Delete a loan from a borrower
-     * @param borrower The borrower's id
      * @param dewey The dewey id of the copy
      */
-    public void deleteLoan(int borrower, String dewey) throws SQLException
+    public void deleteLoan(String dewey) throws SQLException
     {
-        String loansQuery = "DELETE FROM loans WHERE borrowerID=? AND deweyID=?";
+        String loansQuery = "DELETE FROM loans WHERE deweyID=?";
         String copiesQuery = "UPDATE copies SET onLoan = ? AND deweyID = ?";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
@@ -94,8 +93,7 @@ public class Mysql
             con.setAutoCommit(false); //Need to update 2 tables at once, so use transaction
             stmt = con.prepareStatement(loansQuery);
             //Assign parameters for query 1
-            stmt.setInt(1, borrower);
-            stmt.setString(2, dewey);
+            stmt.setString(1, dewey);
             stmt.executeUpdate();
             stmt.clearParameters(); //Just in case...
             stmt.close(); //Just in case...
@@ -203,7 +201,7 @@ public class Mysql
     public Borrower getBorrower(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
-        params.put("id", id);
+        params.put("borrowerID", id);
         Borrower borrower;
         try
         {
@@ -360,7 +358,7 @@ public class Mysql
     public Loan getLoan(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
-        params.put("id", id);
+        params.put("borrowerID", id);
 
         Loan loan;
         try
@@ -398,7 +396,7 @@ public class Mysql
     public Reservation getReservation(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
-        params.put("id", id);
+        params.put("borrowerID", id);
 
         Reservation reservation;
         try
@@ -420,7 +418,7 @@ public class Mysql
      * Adds a new reservation to the database.
      * @param details A hashtable of all the details. It expects the following keys:
      *                <ul>
-     *                <li>"id"</li>
+     *                <li>"borrowerID"</li>
      *                <li>"isbn"</li>
      *                <li>"issn"</li>
      *                <li>"date"</li></ul>
@@ -429,7 +427,7 @@ public class Mysql
      */
     public void addReservation(Hashtable<String, Object> details) throws SQLException
     {
-        String query = "INSERT INTO reservations(id, isbn, issn, date) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO reservations(borrowerID, isbn, issn, date) VALUES (?, ?, ?, ?)";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
         try
@@ -439,7 +437,7 @@ public class Mysql
             //Give isbn and issn the right values in the database
             if (details.containsKey("isbn"))
             {
-                stmt.setInt(2, (Integer)details.get("isbn"));
+                stmt.setInt(2, Integer.parseInt((String) details.get("isbn")));
                 stmt.setNull(3, Types.INTEGER);
             }
             else
@@ -447,7 +445,7 @@ public class Mysql
                 stmt.setInt(3, (Integer)details.get("issn"));
                 stmt.setNull(2, Types.INTEGER);
             }
-            stmt.setInt(1,(Integer)details.get("id"));
+            stmt.setInt(1,Integer.parseInt((String)details.get("borrowerID")));
             java.util.Date date = (java.util.Date) details.get("date");
             stmt.setDate(4, new java.sql.Date(date.getTime()));
             //Add to database
@@ -482,7 +480,7 @@ public class Mysql
      * Deletes a reservation from the database
      * @param details A hashtable of all the details of the reservation. It expects the following keys:
      *                <ul>
-     *                <li>"id"</li>
+     *                <li>"borrowerID"</li>
      *                <li>"isbn"</li>
      *                <li>"issn"</li>
      *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
@@ -491,7 +489,7 @@ public class Mysql
     public void deleteReservation(Hashtable<String, Object> details) throws SQLException
     {
         String query = "DELETE FROM reservations WHERE id= ? AND ";
-        int firstParam = (Integer) details.get("id");
+        int firstParam = (Integer) details.get("borrowerID");
         int secondParam;
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if there's an error
@@ -622,7 +620,7 @@ public class Mysql
                     objects.add(new Loan(result.getString("deweyID"), (java.util.Date) result.getDate("issueDate"), result.getInt("borrowerID")));				//Using java.util.Date to avoid conflict with java.sql.Date
                 }else if(table_name.equals("borrowers"))
                 {
-                    objects.add(new Borrower(result.getInt("id"), result.getString("forename"), result.getString("surname"), result.getString("email")));
+                    objects.add(new Borrower(result.getInt("borrowerID"), result.getString("forename"), result.getString("surname"), result.getString("email")));
                 }else if(table_name.equals("copies"))
                 {
                     String dewey = result.getString("deweyID");
@@ -659,7 +657,7 @@ public class Mysql
                         item = this.getBook(isbn);
                     }
 
-                    objects.add(new Reservation((java.util.Date) result.getDate("date"), result.getInt("id"), item));
+                    objects.add(new Reservation((java.util.Date) result.getDate("date"), result.getInt("borrowerID"), item));
                 }
 
             }
