@@ -116,9 +116,6 @@ public class MysqlTest
         catch (Exception e)
         {
             System.out.println(e);
-        }catch(DataNotFoundException e)
-		{
-			            System.out.println(e);
 		}
 
 		//Borrower b = db.getBorrower(1000001);
