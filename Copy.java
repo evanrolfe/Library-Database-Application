@@ -65,7 +65,6 @@ public class Copy
 		Loan loan = null;
 		try
         {
-			System.out.println("Finding loan with deweyID: "+this.deweyIndex);
 			loan = Database.find_loans_by_deweyid(this.deweyIndex);
 			return loan;
 		}
