@@ -35,4 +35,8 @@ public class Reservation
 		}
     }
 
+	public String toString()
+	{
+		return "Reservation: borrower_id: "+this.borrower_id+"\t date:"+reserveDate;
+	}
 }

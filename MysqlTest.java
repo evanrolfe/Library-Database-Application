@@ -17,20 +17,45 @@ public class MysqlTest
 //========================================
 //	VALIDATION TESTS
 //========================================
+	java.util.Date today = new java.util.Date();
+	System.out.println(today);
+	//db.addLoan(1000006,"124.452.767.5", new java.util.Date(), new java.util.Date());
 
-//COMPLETED: Mysql.addLoan() (borrower cannot have more than 6 loans, and no laons overdue)
-//EVAN: Mysql.addLoan() - copy must not be reference only
-
-	//Test: copy with deweyID: 823.452.767.7 is marked as reference only in the database so this should throw a LibraryRulesException
+//COMPLETED: EVAN: Mysql.addLoan() (borrower cannot have more than 6 loans, and no laons overdue)
+	
+	//Test: borrower with ID 1000001 has 6 loans out so cannnot add a new loan for him
 	try
 	{
-		db.addLoan(1000001, "823.452.767.7", new java.util.Date(), new java.util.Date());
+		db.addLoan(1000001, "524.124.125.7", new java.util.Date(), new java.util.Date());
 	}catch(LibraryRulesException e)
 	{
 		System.out.println(e);
 	}
+
+
+//COMPLETED: EVAN: Mysql.addLoan() - copy must not be reference only
+
+	//Test: copy with deweyID: 823.452.767.7 is marked as reference only in the database so this should throw a LibraryRulesException
+	try
+	{
+		db.addLoan(1000002, "753.159.852.3", new java.util.Date(), new java.util.Date());
+	}catch(LibraryRulesException e)
+	{
+		System.out.println(e);
+	}
+
 //EVAN: Mysql.addLoan() - no outstanding reservations unless they themselves have reserved it
 
+	//Test: Perioical with issn=12598754 is already reserved by borrower id=1000006
+/*
+	try
+	{
+		//db.addLoan(1000002, "753.159.852.3", new java.util.Date(), new java.util.Date());
+	}catch(LibraryRulesException e)
+	{
+		System.out.println(e);
+	}
+*/
 /*
 - PADDY: Mysql.addReservation() - if no free copies then recall 
 */
@@ -77,12 +102,10 @@ public class MysqlTest
 		//Borrower b = db.getBorrower(1000001);
 		//System.out.println(b.forename);
 
-/*
-		System.out.println("TESTING RESERVATIONS\n");
-		Hashtable<String,Object> params = new Hashtable<String,Object>();
-		params.put("issn", 52411241);
 
-		ArrayList<Reservation> reservations = db.getReservations(params);
+		System.out.println("TESTING RESERVATIONS\n");
+
+		ArrayList<Reservation> reservations = db.getReservations();
 
 
 		for(int i=0; i<reservations.size(); i++)
@@ -97,7 +120,7 @@ public class MysqlTest
 		//TESTING PERIODICALS
 		System.out.println("TESTING PERIODICALS\n");
 		Hashtable<String,Object> params1 = new Hashtable<String,Object>();
-		params.put("issn", 12552144);
+		params1.put("issn", 12552144);
 
 		ArrayList<Item> periodicals = db.getPeriodicals(params1);
 
@@ -170,7 +193,6 @@ public class MysqlTest
 		}
 
 		System.out.println(db.getCopy("524.124.125.5"));
-*/
 	}	
 
 }

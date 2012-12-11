@@ -47,14 +47,16 @@ public class Mysql
 			if(copy.referenceOnly==true)
 				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is reference only!");
 
-			//
+			//check it isn't already on loan
 			if(copy.onLoan()==true)
 				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is already on loan!");
-            // Check isn't reserved by ANOTHER borrowers
-			//Identify the related book/periodical (Item)
+
+            //Check isn't reserved by ANOTHER borrower
+			//1. Identify the related book/periodical (Item)
+			//2. Find the reservations
 			ArrayList<Reservation> reservations = Database.find_reservations(copy.item);
-			System.out.println(reservations.size());
 		
+			//3. Find the first reservation in the queue (one with earliest 
 		}
         catch(InvalidArgumentException e1)
 		{
@@ -191,6 +193,17 @@ public class Mysql
      */
     private void updateLoan(int borrower, String dewey, java.util.Date newDueDate, boolean recall) throws SQLException
     {
+		//VALIDATIN
+
+		//can only renew if the loan has not been recalled
+
+		//and the borrower has not overdue loans
+		Borrower borrower = this.getBorrower(borrower);
+
+		if(borrower.getCopiesOverDue().size() > 0)
+			throw new LibraryRulesException("That borrower already has overdue loans!");
+
+
         String query = "UPDATE loans SET dueDate = ? WHERE borrowerID=? AND deweyID=?";
         if(recall)
         {
