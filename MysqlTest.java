@@ -99,8 +99,6 @@ public class MysqlTest
 		System.out.println("TESTING LOANS\n");
 		Hashtable<String,Object> params5 = new Hashtable<String,Object>();
 
-		//params.put("deweyID","2");
-
 		ArrayList<Loan> loans = db.getLoans();
 
 
@@ -109,7 +107,11 @@ public class MysqlTest
 			System.out.println(loans.get(i));
 		}
 
+
 */
 		System.out.println(db.getCopy("524.124.125.5"));
 	}	
+=======
+	}
+>>>>>>> c44be4b6f030c923983c738bf2c4a125b25e0ee1
 }
