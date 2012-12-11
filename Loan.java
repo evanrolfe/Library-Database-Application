@@ -1,4 +1,5 @@
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 import java.util.Date;
 
 //Loan class to  handle creation of loan objects and methods manipulating a current instance of the loan class.
@@ -83,7 +84,9 @@ public class Loan
 		if(this.overDue()==true)
 		{
 			//return the amount the borrower owes in fines. (£1/day)
-			return 1;
+			Days d = Days.daysBetween(new DateTime(this.dueDate.getTime()), new DateTime());
+			int days = d.getDays();
+			return days;
 		}else{
 			//If current instance of loan is not overdue the borrower has no fines for this loan.
 			return 0;
