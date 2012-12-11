@@ -16,7 +16,7 @@ public class MysqlTest
 		//Borrower b = db.getBorrower(1000001);
 		//System.out.println(b.forename);
 
-
+/*
 		System.out.println("TESTING RESERVATIONS\n");
 		Hashtable<String,Object> params = new Hashtable<String,Object>();
 		params.put("issn", 52411241);
@@ -95,14 +95,13 @@ public class MysqlTest
 		System.out.println(db.getBorrower(1000001));
 		System.out.println("=====================================");
 
-
 		//TESTING LOANS
 		System.out.println("TESTING LOANS\n");
 		Hashtable<String,Object> params5 = new Hashtable<String,Object>();
-		params5.put("id", 1);
+
 		//params.put("deweyID","2");
 
-		ArrayList<Loan> loans = db.getLoans(params5);
+		ArrayList<Loan> loans = db.getLoans();
 
 
 		for(int i=0; i<loans.size(); i++)
@@ -110,6 +109,7 @@ public class MysqlTest
 			System.out.println(loans.get(i));
 		}
 
-		System.out.println(db.getLoan(1));
+*/
+		System.out.println(db.getCopy("524.124.125.5"));
 	}	
 }

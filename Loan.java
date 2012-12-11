@@ -33,6 +33,7 @@ public class Loan
 			this.periodical_issn = item.issn;			
 		}
 
+		Date today = new Date();
 		long timestamp = issueDate.getTime()+(3*7*24*3600*1000);
 		this.dueDate = new Date(timestamp);
     }
@@ -77,6 +78,6 @@ public class Loan
 	//Method to convert the current instance of loan into a string so it can be displayed suitably on screen.
 	public String toString()
 	{
-		return "Loan:"+this.deweyID+"\t Issue Date: "+this.issueDate+"\t "+this.dueDate+"\t Is loan overdue? "+this.overDue();
+		return "Loan:"+this.deweyID+"\t Issue Date: "+this.issueDate+"\t Due date: "+this.dueDate+"\t Is loan overdue? "+this.overDue();
 	}
 }

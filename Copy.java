@@ -52,18 +52,28 @@ public class Copy
 
 	public boolean onLoan()
 	{
-        return onLoan;
+        if(this.getLoan() == null)
+		{
+			return false;
+		}else{
+			return true;
+		}
 	}
 
-	public Loan getLoan() throws DataNotFoundException, InvalidArgumentException
+	public Loan getLoan()
 	{
 		Loan loan = null;
 		try
         {
+			System.out.println("Finding loan with deweyID: "+this.deweyIndex);
 			loan = Database.find_loans_by_deweyid(this.deweyIndex);
 			return loan;
 		}
 		catch (DataNotFoundException e)
+		{
+			return loan;
+		}
+		catch (InvalidArgumentException e)
 		{
 			return loan;
 		}

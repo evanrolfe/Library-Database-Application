@@ -360,7 +360,7 @@ public class Mysql
     public Loan getLoan(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
-        params.put("id", id);
+        params.put("borrowerID", id);
 
         Loan loan;
         try
@@ -373,7 +373,7 @@ public class Mysql
         return loan;
     }
 
-    //==============================================================
+//==============================================================
 // RESERVATIONS GETTER METHODS
 //==============================================================
     public ArrayList<Reservation> getReservations(Hashtable<String, Object> params) throws DataNotFoundException, InvalidArgumentException
@@ -539,7 +539,7 @@ public class Mysql
         }
     }
 
-    //==============================================================
+//==============================================================
 // DATABASE CORE 
 //==============================================================
     private ArrayList<Object> getObjects(Hashtable<String,Object> params, String table_name) throws DataNotFoundException, InvalidArgumentException
