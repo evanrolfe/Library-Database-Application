@@ -45,13 +45,19 @@ public class Loan
 
     public Loan(String deweyID, Date issueDate, int borrower_id, Copy copy)
 	{
-		this(deweyID, issueDate, borrower_id, copy, s);
+		this(deweyID, issueDate, borrower_id, copy, false);
 	}
 
     //Loan constructor to create a loan in which the specific copy being loaned is not provided.
     public Loan(String deweyID, Date issueDate, int borrower_id) throws DataNotFoundException, InvalidArgumentException
     {
 		this(deweyID, issueDate, borrower_id, Database.find_copy_by_dewey(deweyID));
+    }
+
+    //Loan constructor to create a loan in which the specific copy being loaned is not provided.
+    public Loan(String deweyID, Date issueDate, int borrower_id, boolean recalled) throws DataNotFoundException, InvalidArgumentException
+    {
+		this(deweyID, issueDate, borrower_id, Database.find_copy_by_dewey(deweyID), recalled);
     }
 
     //OverDue method to calculate if the current instance of copy is overdue. 
