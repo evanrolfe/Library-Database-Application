@@ -1,6 +1,7 @@
 import org.joda.time.DateTime;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 /*
  * Run on command line using:

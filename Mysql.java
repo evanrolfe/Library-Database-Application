@@ -179,31 +179,40 @@ public class Mysql
         }
     }
 
-    public void renewLoan(int borrower, String dewey)
+    public void renewLoan(int borrowerID, String dewey) throws Exception
     {
-        //EMPTY METHOD
+        //VALIDATIN
+
+        //can only renew if the loan has not been recalled
+
+        //and the borrower has not overdue loans
+        Borrower borrower = null;
+        try
+        {
+            borrower = this.getBorrower(borrowerID);
+        }
+        catch (DataNotFoundException e)
+        {
+            e.printStackTrace();  //AUTOGEN
+        }
+        catch (InvalidArgumentException e)
+        {
+            e.printStackTrace();  //AUTOGEN
+        }
+
+        if(borrower.getCopiesOverDue().size() > 0)
+            throw new LibraryRulesException("That borrower already has overdue loans!");
     }
 
     /**
      * Updates a loan and sets the new dueDate
-     * @param borrower The borrower's id
+     * @param borrowerID The borrower's id
      * @param dewey The dewey id of the loaned copy
      * @param newDueDate The new dueDate for the loan
      * @param recall If the loan is to be recalled
      */
-    private void updateLoan(int borrower, String dewey, java.util.Date newDueDate, boolean recall) throws SQLException
+    private void updateLoan(int borrowerID, String dewey, java.util.Date newDueDate, boolean recall) throws SQLException
     {
-		//VALIDATIN
-
-		//can only renew if the loan has not been recalled
-
-		//and the borrower has not overdue loans
-		Borrower borrower = this.getBorrower(borrower);
-
-		if(borrower.getCopiesOverDue().size() > 0)
-			throw new LibraryRulesException("That borrower already has overdue loans!");
-
-
         String query = "UPDATE loans SET dueDate = ? WHERE borrowerID=? AND deweyID=?";
         if(recall)
         {
@@ -217,7 +226,7 @@ public class Mysql
             stmt = con.prepareStatement(query);
             //Assign the parameters for the query
             stmt.setDate(1, new java.sql.Date(newDueDate.getTime()));
-            stmt.setInt(2, borrower);
+            stmt.setInt(2, borrowerID);
             stmt.setString(3, dewey);
             //Execute the query
             stmt.executeUpdate();
