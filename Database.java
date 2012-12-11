@@ -65,7 +65,7 @@ public class Database
 	{
 		Mysql db = new Mysql();
 		Hashtable<String,Object> params = new Hashtable<String,Object>();
-		params.put("id", id);
+		params.put("borrowerID", id);
 		return db.getLoans(params);	
 	}
 
