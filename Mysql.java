@@ -40,9 +40,23 @@ public class Mysql
 
 			if(borrower.hasLoansOverDue()==true)
 				throw new LibraryRulesException("The borrower id #"+id+" has some loans which are overdue!");
+
             // Check copy isn't a reference only
+			Copy copy = Database.find_copy_by_dewey(deweyID);
+			if(copy.referenceOnly==true)
+				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is reference only!");
+
             // Check copy isn't on loan
-            // Check isn't reserved by ANOTHER borrower
+			if(copy.onLoan()==false)
+				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is not marked as on loan!");
+
+            // Check isn't reserved by ANOTHER borrowers
+			//Identify the related book/periodical (Item)
+			ArrayList<Reservation> reservations = Database.find_reservations(copy.item);
+
+			//Also validate deweyID is valid
+			
+		
 		}
         catch(DataNotFoundException e)
 		{

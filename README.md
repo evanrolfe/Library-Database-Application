@@ -8,8 +8,10 @@ Things to Validate
 - EVAN: Mysql.addLoan() - no outstanding reservations unless they themselves have reserved it
 -
 
-- PADDY: Mysql.addReservation() - if no free copies then recall 
+- PADDY: Mysql.addReservation() - if no free copies then recall
  
+	-check that its a valid borrower ID
+
 - EVAN: Renewing a loan: Mysql.updateLoan()
 
 	-can only renew if the loan has not been recalled
