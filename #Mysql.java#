@@ -1,12 +1,9 @@
-import org.joda.time.DateTime;
-
 import java.sql.*;
 import java.util.*;
-import java.util.Date;
 
 /*
  * Run on command line using:
-javac -cp joda.jar:. *.java && java -cp connector.jar:joda.jar:. MysqlTest
+javac *.java && java -cp connector.jar:. Mysql
  */
 
 public class Mysql
@@ -14,7 +11,7 @@ public class Mysql
     /**
      * The connection string to the database
      */
-    private final String DATABASE_CONNECTION = "jdbc:mysql://stusql.dcs.shef.ac.uk/team007?user=team007&password=bf251b2e";
+    private String databaseConnection = "jdbc:mysql://stusql.dcs.shef.ac.uk/team007?user=team007&password=bf251b2e";
 
     /**
      * Adds a loan to the database
@@ -23,49 +20,15 @@ public class Mysql
      * @param issueDate The issueDate of the loan
      * @param dueDate When the loan is due
      */
-    public void addLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate) throws SQLException, LibraryRulesException, DataNotFoundException
+    public void addLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate)
     {
         PreparedStatement stmt = null; //Prepared statements mean that it does most of the hard work for us
-        //Generate queries
         String copiesQuery = "UPDATE copies SET onLoan = ? WHERE deweyID LIKE ?";
         String loansQuery = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
-                "VALUES (?, ?, ?, ?);";
-        String errorMessage = null;
-
-		try
-		{
-			Borrower borrower = this.getBorrower(id);
-
-			if(borrower.getLoans().size() >= 6)
-				throw new LibraryRulesException("The borrower id #"+id+" has reached their limit of 6 loans!");
-
-			if(borrower.hasLoansOverDue()==true)
-				throw new LibraryRulesException("The borrower id #"+id+" has some loans which are overdue!");
-
-            // Check copy isn't a reference only
-			Copy copy = Database.find_copy_by_dewey(deweyID);
-			if(copy.referenceOnly==true)
-				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is reference only!");
-
-			//check it isn't already on loan
-			if(copy.onLoan()==true)
-				throw new LibraryRulesException("The copy with deweyID: "+deweyID+" is already on loan!");
-
-            //Check isn't reserved by ANOTHER borrower
-			//1. Identify the related book/periodical (Item)
-			//2. Find the reservations
-			ArrayList<Reservation> reservations = Database.find_reservations(copy.item);
-		
-			//3. Find the first reservation in the queue (one with earliest 
-		}
-        catch(InvalidArgumentException e1)
-		{
-			
-		}
-
+                "VALUES (?, ?, ?, ?);";                            //Generate queries
         try
         {
-            Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
+            Connection con = DriverManager.getConnection(databaseConnection);
             //Transaction start - since we need to update 2 tables at once.
             con.setAutoCommit(false);
             stmt = con.prepareStatement(loansQuery);
@@ -89,7 +52,7 @@ public class Mysql
         }
         catch (SQLException e)
         {
-            errorMessage = e.getMessage();
+            e.printStackTrace();
         }
         finally
         {
@@ -106,40 +69,26 @@ public class Mysql
                 }
             }
         }
-        if (errorMessage != null)
-        {
-            throw new SQLException(errorMessage);
-        }
     }
 
     /**
      * Delete a loan from a borrower
+     * @param borrower The borrower's id
      * @param dewey The dewey id of the copy
      */
-    public void deleteLoan(String dewey) throws SQLException, LibraryRulesException, DataNotFoundException
+    public void deleteLoan(int borrower, String dewey)
     {
-        String loansQuery = "DELETE FROM loans WHERE deweyID=?";
+        String loansQuery = "DELETE FROM loans WHERE borrowerID=? AND deweyID=?";
         String copiesQuery = "UPDATE copies SET onLoan = ? AND deweyID = ?";
         PreparedStatement stmt = null;
-        String errorMessage = null; //Used if we have an error
-        //Check if borrower has overdue fines and throw an error if this is the case
-        int totalFine;
         try
         {
-            Loan loan = Database.find_loans_by_deweyid(dewey);
-            totalFine = loan.getFine();
-        }
-        catch (InvalidArgumentException e)
-        {
-            throw new SQLDataException(e.getMessage());
-        }
-        try
-        {
-            Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
+            Connection con = DriverManager.getConnection(databaseConnection);
             con.setAutoCommit(false); //Need to update 2 tables at once, so use transaction
             stmt = con.prepareStatement(loansQuery);
             //Assign parameters for query 1
-            stmt.setString(1, dewey);
+            stmt.setInt(1, borrower);
+            stmt.setString(2, dewey);
             stmt.executeUpdate();
             stmt.clearParameters(); //Just in case...
             stmt.close(); //Just in case...
@@ -152,7 +101,7 @@ public class Mysql
         }
         catch (SQLException e)
         {
-            errorMessage = e.getMessage();
+            e.printStackTrace(); //Currently unsure about error handling
         }
         finally
         {
@@ -169,85 +118,32 @@ public class Mysql
                 }
             }
         }
-        if (errorMessage != null)
-        {
-            throw new SQLException(errorMessage);
-        }
-        if (totalFine>0)
-        {
-            throw new LibraryRulesException("You owe a fine of £" + totalFine + ".");
-        }
-    }
-
-    public void renewLoan(int borrowerID, String dewey) throws DataNotFoundException, SQLException, LibraryRulesException
-    {
-        //VALIDATING
-
-        //can only renew if the loan has not been recalled
-
-        //and the borrower has not overdue loans
-        Borrower borrower = null;
-        try
-        {
-            borrower = getBorrower(borrowerID);
-            int size = 0;
-            try
-            {
-                size = borrower.getCopiesOverDue().size();
-            }
-            catch (Exception e)
-            {
-                throw new DataNotFoundException(e.getMessage());
-            }
-            if (size > 0)
-            {
-                throw new LibraryRulesException("That borrower already has overdue loans!");
-            }
-            Loan loan = Database.find_loans_by_deweyid(dewey);
-            if (loan.recalled)
-            {
-                throw new LibraryRulesException("This loan has been recalled");
-            }
-        }
-        catch (InvalidArgumentException e)
-        {
-            throw new SQLException(e.getMessage());
-        }
-        DateTime dateTime = DateTime.now();
-        dateTime = dateTime.plusWeeks(1);
-        updateLoan(borrowerID, dewey, new java.util.Date(dateTime.getMillis()), false);
     }
 
     /**
      * Updates a loan and sets the new dueDate
-     * @param borrowerID The borrower's id
+     * @param borrower The borrower's id
      * @param dewey The dewey id of the loaned copy
      * @param newDueDate The new dueDate for the loan
-     * @param recall If the loan is to be recalled
      */
-    private void updateLoan(int borrowerID, String dewey, java.util.Date newDueDate, boolean recall) throws SQLException
+    public void updateLoan(int borrower, String dewey, java.util.Date newDueDate)
     {
         String query = "UPDATE loans SET dueDate = ? WHERE borrowerID=? AND deweyID=?";
-        if(recall)
-        {
-            query = "UPDATE loans SET dueDate = ?, recalled = 1 WHERE borrowerID=? AND deweyID=?";
-        }
         PreparedStatement stmt = null;
-        String errorMessage = null;
         try
         {
-            Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
+            Connection con = DriverManager.getConnection(databaseConnection);
             stmt = con.prepareStatement(query);
             //Assign the parameters for the query
             stmt.setDate(1, new java.sql.Date(newDueDate.getTime()));
-            stmt.setInt(2, borrowerID);
+            stmt.setInt(2, borrower);
             stmt.setString(3, dewey);
             //Execute the query
             stmt.executeUpdate();
         }
         catch (SQLException e)
         {
-            errorMessage = e.getMessage();
+            e.printStackTrace();
         }
         finally
         {
@@ -263,10 +159,6 @@ public class Mysql
                     e2.printStackTrace();
                 }
             }
-        }
-        if (errorMessage != null)
-        {
-            throw new SQLException(errorMessage);
         }
     }
 
@@ -279,9 +171,9 @@ public class Mysql
         ArrayList<Borrower> borrowers = new ArrayList<Borrower>();
 
         //Cast it as a borrower object
-        for (Object object : objects)
+        for(int i=0; i<objects.size(); i++)
         {
-            borrowers.add((Borrower) object);
+            borrowers.add((Borrower)objects.get(i));
         }
 
         return borrowers;
@@ -295,7 +187,7 @@ public class Mysql
     public Borrower getBorrower(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
-        params.put("borrowerID", id);
+        params.put("id", id);
         Borrower borrower;
         try
         {
@@ -317,9 +209,9 @@ public class Mysql
         ArrayList<Item> books = new ArrayList<Item>();
 
         //Cast it as a Loan object
-        for (Object object : objects)
+        for(int i=0; i<objects.size(); i++)
         {
-            books.add((Item) object);
+            books.add((Item)objects.get(i));
         }
 
         return books;
@@ -358,9 +250,9 @@ public class Mysql
         ArrayList<Item> periodicals = new ArrayList<Item>();
 
         //Cast it as a Loan object
-        for (Object object : objects)
+        for(int i=0; i<objects.size(); i++)
         {
-            periodicals.add((Item) object);
+            periodicals.add((Item)objects.get(i));
         }
 
         return periodicals;
@@ -398,9 +290,9 @@ public class Mysql
         ArrayList<Copy> copies = new ArrayList<Copy>();
 
         //Cast it as a Loan object
-        for (Object object : objects)
+        for(int i=0; i<objects.size(); i++)
         {
-            copies.add((Copy) object);
+            copies.add((Copy)objects.get(i));
         }
 
         return copies;
@@ -436,9 +328,9 @@ public class Mysql
         ArrayList<Loan> loans = new ArrayList<Loan>();
 
         //Cast it as a Loan object
-        for (Object object : objects)
+        for(int i=0; i<objects.size(); i++)
         {
-            loans.add((Loan) object);
+            loans.add((Loan)objects.get(i));
         }
 
         return loans;
@@ -452,7 +344,7 @@ public class Mysql
     public Loan getLoan(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
-        params.put("borrowerID", id);
+        params.put("id", id);
 
         Loan loan;
         try
@@ -465,7 +357,7 @@ public class Mysql
         return loan;
     }
 
-//==============================================================
+    //==============================================================
 // RESERVATIONS GETTER METHODS
 //==============================================================
     public ArrayList<Reservation> getReservations(Hashtable<String, Object> params) throws DataNotFoundException, InvalidArgumentException
@@ -474,9 +366,9 @@ public class Mysql
         ArrayList<Reservation> reservations = new ArrayList<Reservation>();
 
         //Cast it as a Loan object
-        for (Object object : objects)
+        for(int i=0; i<objects.size(); i++)
         {
-            reservations.add((Reservation) object);
+            reservations.add((Reservation)objects.get(i));
         }
 
         return reservations;
@@ -490,7 +382,7 @@ public class Mysql
     public Reservation getReservation(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
-        params.put("borrowerID", id);
+        params.put("id", id);
 
         Reservation reservation;
         try
@@ -509,103 +401,44 @@ public class Mysql
 //==============================================================
 
     /**
-     * Adds a new reservation to the database.
+     * Creates a new reservation in the database.
      * @param details A hashtable of all the details. It expects the following keys:
      *                <ul>
-     *                <li>"borrowerID" -> int</li>
-     *                <li>"isbn" -> int</li>
-     *                <li>"issn" -> int</li>
+     *                <li>"id"</li>
+     *                <li>"isbn"</li>
+     *                <li>"issn"</li>
+     *                <li>"date"</li></ul>
      *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
      *                as a value to the "isbn" key.
      */
-    public void addReservation(Hashtable<String, Object> details) throws SQLException, LibraryRulesException, DataNotFoundException
+    public void createReservation(Hashtable<String, Object> details)
     {
-        String query = "INSERT INTO reservations(borrowerID, isbn, issn, date) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO reservations(id, isbn, issn, date) VALUES (?, ?, ?, ?)";
         PreparedStatement stmt = null;
-        String errorMessage = null; //Used if we have an error
-        ArrayList<Copy> copies;
         try
         {
-            if (details.containsKey("isbn"))
-            {
-                copies = Database.find_copies_by_isbn(details.get("isbn").toString());
-            }
-            else
-            {
-                copies = Database.find_copies_by_issn(details.get("issn").toString());
-            }
-        }
-        catch (InvalidArgumentException e)
-        {
-            throw new SQLDataException(e.getMessage());
-        }
-
-        boolean canReserve = false;
-        ArrayList<Loan> loans = new ArrayList<Loan>();
-        try
-        {
-            for (Copy copy: copies)
-            {
-                if (!canReserve)
-                {
-                    try
-                    {
-                        loans.add(Database.find_loans_by_deweyid(copy.deweyIndex));
-                    }
-                    catch (DataNotFoundException e)
-                    {
-                        if (!copy.referenceOnly)
-                        {
-                            canReserve = true;
-                        }
-                    }
-                }
-            }
-        }
-        catch (InvalidArgumentException e)
-        {
-            throw new SQLDataException(e.getMessage());
-        }
-        //If there are no free copies, recall earliest loan (dueDate becomes week today)
-        if (!canReserve)
-        {
-            //Find the earliest loan
-            Loan earliestLoan = new Loan("2", new java.util.Date(), 0, copies.get(0));
-            for (Loan loan: loans)
-            {
-                if (loan.issueDate.before(earliestLoan.issueDate))
-                {
-                    earliestLoan = loan;
-                }
-            }
-            DateTime newDueDate = new DateTime();
-            newDueDate = newDueDate.plusWeeks(1);
-            recallLoan(earliestLoan.borrower_id, earliestLoan.deweyID, new java.util.Date(newDueDate.getMillis()));
-        }
-        try
-        {
-            Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
+            Connection con = DriverManager.getConnection(databaseConnection);
             stmt = con.prepareStatement(query);
             //Give isbn and issn the right values in the database
             if (details.containsKey("isbn"))
             {
-                stmt.setInt(2, Integer.parseInt(details.get("isbn").toString()));
-                stmt.setInt(3, 0);
+                stmt.setInt(2, (Integer)details.get("isbn"));
+                stmt.setNull(3, Types.INTEGER);
             }
             else
             {
-                stmt.setInt(3, Integer.parseInt((String)details.get("issn").toString()));
-                stmt.setInt(2, 0);
+                stmt.setInt(3, (Integer)details.get("issn"));
+                stmt.setNull(2, Types.INTEGER);
             }
-            stmt.setInt(1,Integer.parseInt(details.get("borrowerID").toString()));
-            DateTime date = DateTime.now();
-            stmt.setTimestamp(4, new Timestamp(date.getMillis()));
+            stmt.setInt(1,(Integer)details.get("id"));
+            java.util.Date date = (java.util.Date) details.get("date");
+            stmt.setDate(4, new java.sql.Date(date.getTime()));
             //Add to database
             stmt.executeUpdate();
         }
         catch (SQLException e)
         {
-            errorMessage = e.getMessage();
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         finally
         {
@@ -622,38 +455,24 @@ public class Mysql
                 }
             }
         }
-        if (errorMessage != null)
-        {
-            throw new SQLException(errorMessage);
-        }
-        if (!canReserve)
-        {
-            throw new LibraryRulesException("Your copy has been reserved, but all copies are on loan. Please wait a week");
-        }
-    }
-
-    private void recallLoan(int borrowerID, String deweyID, Date date) throws SQLException
-    {
-        updateLoan(borrowerID, deweyID, date, true);
     }
 
     /**
      * Deletes a reservation from the database
      * @param details A hashtable of all the details of the reservation. It expects the following keys:
      *                <ul>
-     *                <li>"borrowerID"</li>
+     *                <li>"id"</li>
      *                <li>"isbn"</li>
      *                <li>"issn"</li>
      *                <strong>NOTE:</strong> If both isbn and issn are keys, isbn will take priority. Do not pass null
      *                as a value to the "isbn" key.
      */
-    public void deleteReservation(Hashtable<String, Object> details) throws SQLException
+    public void deleteReservation(Hashtable<String, Object> details)
     {
         String query = "DELETE FROM reservations WHERE id= ? AND ";
-        int firstParam = (Integer) details.get("borrowerID");
-        int secondParam;
+        int firstParam = (Integer) details.get("id");
+        int secondParam = 0;
         PreparedStatement stmt = null;
-        String errorMessage = null; //Used if there's an error
         //Sort out the case of isbn/issn keys
         if (details.containsKey("isbn"))
         {
@@ -667,7 +486,7 @@ public class Mysql
         }
         try
         {
-            Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
+            Connection con = DriverManager.getConnection(databaseConnection);
             stmt = con.prepareStatement(query);
             //assign parameters
             stmt.setInt(1, firstParam);
@@ -676,7 +495,7 @@ public class Mysql
         }
         catch (SQLException e)
         {
-            errorMessage = e.getMessage();
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         finally
         {
@@ -688,17 +507,13 @@ public class Mysql
                 }
                 catch (SQLException e)
                 {
-                    e.printStackTrace();
+                    e.printStackTrace();  //AUTOGEN
                 }
             }
         }
-        if (errorMessage != null)
-        {
-            throw new SQLException(errorMessage);
-        }
     }
 
-//==============================================================
+    //==============================================================
 // DATABASE CORE 
 //==============================================================
     private ArrayList<Object> getObjects(Hashtable<String,Object> params, String table_name) throws DataNotFoundException, InvalidArgumentException
@@ -710,7 +525,7 @@ public class Mysql
         ArrayList<Object> objects = new ArrayList<Object>();
         try
         {
-            Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
+            Connection con = DriverManager.getConnection(databaseConnection);
             stmt = con.createStatement();
             result = stmt.executeQuery("SELECT * FROM `"+table_name+"`");
 
@@ -750,7 +565,7 @@ public class Mysql
                     if(columns.get(search_col.getKey()).equals("VARCHAR"))
                     {
                         query += search_col.getKey()+" LIKE '"+search_col.getValue()+"'";
-                    }else if(columns.get(search_col.getKey()).equals("DATE"))
+                    }xelse if(columns.get(search_col.getKey()).equals("DATE"))
                     {
                         query += search_col.getKey()+"="+search_col.getValue();
                     }else if(columns.get(search_col.getKey()).equals("INT"))
@@ -767,9 +582,7 @@ public class Mysql
                 stmt.close();
 
                 //If no search parameters have been specified then return all rows
-            }
-            else
-            {
+            }else{
                 query = "SELECT * FROM `"+table_name+"`";
             }
             //4. Execute the query and instantiate the relevant objects from the results data
@@ -778,13 +591,13 @@ public class Mysql
             while(result.next())
             {
                 //Instantiate the objects depending on which table has been selected
-                if(table_name.equals("loans"))
+                if(table_name == "loans")
                 {
                     objects.add(new Loan(result.getString("deweyID"), (java.util.Date) result.getDate("issueDate"), result.getInt("borrowerID")));				//Using java.util.Date to avoid conflict with java.sql.Date
-                }else if(table_name.equals("borrowers"))
+                }else if(table_name == "borrowers")
                 {
-                    objects.add(new Borrower(result.getInt("borrowerID"), result.getString("forename"), result.getString("surname"), result.getString("email")));
-                }else if(table_name.equals("copies"))
+                    objects.add(new Borrower(result.getInt("id"), result.getString("forename"), result.getString("surname"), result.getString("email")));
+                }else if(table_name == "copies")
                 {
                     String dewey = result.getString("deweyID");
                     Boolean reference = result.getBoolean("reference");
@@ -800,14 +613,16 @@ public class Mysql
                     }else{
                         item = this.getBook(isbn);
                     }
+
+                    //TODO
                     objects.add(new Copy(dewey, reference, item));
-                }else if(table_name.equals("books"))
+                }else if(table_name == "books")
                 {
                     objects.add(new Item(""+result.getInt("isbn"), result.getString("title"), result.getString("author"), result.getString("publisher"), (java.util.Date) result.getDate("date")));
-                }else if(table_name.equals("periodicals"))
+                }else if(table_name == "periodicals")
                 {
                     objects.add(new Item(Integer.toString(result.getInt("issn")), result.getString("title"), result.getInt("volume"), result.getInt("number"), result.getString("publisher"), (java.util.Date) result.getDate("date")));
-                }else if(table_name.equals("reservations"))
+                }else if(table_name == "reservations")
                 {
                     int isbn = result.getInt("isbn");
                     int issn = result.getInt("issn");
@@ -820,7 +635,7 @@ public class Mysql
                         item = this.getBook(isbn);
                     }
 
-                    objects.add(new Reservation((java.util.Date) result.getDate("date"), result.getInt("borrowerID"), item));
+                    objects.add(new Reservation((java.util.Date) result.getDate("date"), result.getInt("id"), item));
                 }
 
             }
