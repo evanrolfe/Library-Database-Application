@@ -8,6 +8,7 @@ public class Loan
     public String deweyID;
     public Date issueDate;
     public Date dueDate;
+	public boolean recalled;
 
 	public int borrower_id;
 	public String book_isbn;
@@ -17,11 +18,12 @@ public class Loan
 	public Copy copy;
 
 	//Loan constructor to create a loan in which the copy being loaned is provided as a parameter.
-    public Loan(String deweyID, Date issueDate, int borrower_id, Copy copy)
+    public Loan(String deweyID, Date issueDate, int borrower_id, Copy copy, boolean recalled)
     {
         this.deweyID = deweyID;
         this.issueDate = issueDate;
 		this.borrower_id = borrower_id;
+		this.recalled = recalled;
 
 		this.item = copy.item;
 		this.copy = copy;
@@ -40,6 +42,11 @@ public class Loan
         DateTime dueDate = new DateTime(issueDate.getTime());
         this.dueDate = new Date(dueDate.plusWeeks(3).getMillis());
     }
+
+    public Loan(String deweyID, Date issueDate, int borrower_id, Copy copy)
+	{
+		this(deweyID, issueDate, borrower_id, copy, s);
+	}
 
     //Loan constructor to create a loan in which the specific copy being loaned is not provided.
     public Loan(String deweyID, Date issueDate, int borrower_id) throws DataNotFoundException, InvalidArgumentException
