@@ -17,11 +17,19 @@ public class MysqlTest
 //========================================
 	
 
-/*
-- COMPLETED: Mysql.addLoan() (borrower cannot have more than 6 loans, and no laons overdue)
-- EVAN: Mysql.addLoan() - copy must not be reference only
-- EVAN: Mysql.addLoan() - no outstanding reservations unless they themselves have reserved it
-*/
+
+//COMPLETED: Mysql.addLoan() (borrower cannot have more than 6 loans, and no laons overdue)
+//EVAN: Mysql.addLoan() - copy must not be reference only
+
+	//Test: copy with deweyID: 823.452.767.7 is marked as reference only in the database so this should throw a LibraryRulesException
+	try
+	{
+		db.addLoan(1000001, "823.452.767.7", new java.util.Date(), new java.util.Date());
+	}catch(LibraryRulesException e)
+	{
+		System.out.println(e);
+	}
+//EVAN: Mysql.addLoan() - no outstanding reservations unless they themselves have reserved it
 
 /*
 - PADDY: Mysql.addReservation() - if no free copies then recall 
