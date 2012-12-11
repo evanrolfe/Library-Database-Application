@@ -56,7 +56,20 @@ public class Mysql
 			//2. Find the reservations
 			ArrayList<Reservation> reservations = Database.find_reservations(copy.item);
 		
-			//3. Find the first reservation in the queue (one with earliest 
+			//3. Find the first reservation in the queue (one with earliest date)
+			if(reservations.size() > 0)
+			{
+				Reservation earliestReservation=null;
+
+				for(Reservation reservation : reservations)
+				{
+					if(earliestReservation==null || earliestReservation.reserveDate.getTime() < reservation.reserveDate.getTime())
+						earliestReservation=reservation;
+				}
+
+				if(earliestReservation.borrower_id!=id)
+					throw new LibraryRulesException("That has already been reserved by another borrower!");
+			}
 		}
         catch(InvalidArgumentException e1)
 		{

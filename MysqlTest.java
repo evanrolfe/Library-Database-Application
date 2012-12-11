@@ -11,7 +11,7 @@ javac *.java && java -cp connector.jar:. MysqlTest
 public class MysqlTest
 {
 
-	public static void main(String[] args) throws SQLException, DataNotFoundException, InvalidArgumentException, LibraryRulesException
+	public static void main(String[] args) throws SQLException, DataNotFoundException, InvalidArgumentException, LibraryRulesException, Exception
 	{
 		Mysql db = new Mysql();
 
@@ -23,7 +23,7 @@ public class MysqlTest
 	//db.addLoan(1000006,"124.452.767.5", new java.util.Date(), new java.util.Date());
 
 //COMPLETED: EVAN: Mysql.addLoan() (borrower cannot have more than 6 loans, and no laons overdue)
-	
+/*	
 	//Test: borrower with ID 1000001 has 6 loans out so cannnot add a new loan for him
 	try
 	{
@@ -32,10 +32,10 @@ public class MysqlTest
 	{
 		System.out.println(e);
 	}
-
+*/
 
 //COMPLETED: EVAN: Mysql.addLoan() - copy must not be reference only
-
+/*
 	//Test: copy with deweyID: 823.452.767.7 is marked as reference only in the database so this should throw a LibraryRulesException
 	try
 	{
@@ -44,14 +44,14 @@ public class MysqlTest
 	{
 		System.out.println(e);
 	}
-
+*/
 //EVAN: Mysql.addLoan() - no outstanding reservations unless they themselves have reserved it
 
 	//Test: Perioical with issn=12598754 is already reserved by borrower id=1000006
 /*
 	try
 	{
-		//db.addLoan(1000002, "753.159.852.3", new java.util.Date(), new java.util.Date());
+		db.addLoan(1000002, "753.159.852.3", new java.util.Date(), new java.util.Date());
 	}catch(LibraryRulesException e)
 	{
 		System.out.println(e);
@@ -98,7 +98,10 @@ public class MysqlTest
         catch (LibraryRulesException e)
         {
             System.out.println(e);
-        }
+        }catch(DataNotFoundException e)
+		{
+			            System.out.println(e);
+		}
 
 		//Borrower b = db.getBorrower(1000001);
 		//System.out.println(b.forename);
@@ -169,12 +172,13 @@ public class MysqlTest
 		Hashtable<String,Object> params4 = new Hashtable<String,Object>();
 		params4.put("forename", "James");
 
-		ArrayList<Borrower> borrowers = db.getBorrowers(params4);
+		ArrayList<Borrower> borrowers = db.getBorrowers();
 
 
 		for(int i=0; i<borrowers.size(); i++)
 		{
 			System.out.println(borrowers.get(i).id);
+			System.out.println("\tHas overdue copies: "+borrowers.get(i).getCopiesOverDue().size());
 		}
 
 		System.out.println(db.getBorrower(1000001));
