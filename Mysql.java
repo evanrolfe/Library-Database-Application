@@ -1,3 +1,5 @@
+import org.joda.time.DateTime;
+
 import java.sql.*;
 import java.util.*;
 
@@ -463,7 +465,7 @@ public class Mysql
         String query = "INSERT INTO reservations(borrowerID, isbn, issn, date) VALUES (?, ?, ?, ?)";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
-        /*ArrayList<Copy> copies = new ArrayList<Copy>();
+        ArrayList<Copy> copies = new ArrayList<Copy>();
         try
         {
             if (details.containsKey("isbn"))
@@ -479,19 +481,45 @@ public class Mysql
         {
             throw new SQLDataException(e.getMessage());
         }
+        boolean canReserve = false;
+        ArrayList<Loan> loans = new ArrayList<Loan>();
         try
         {
             for (Copy copy: copies)
             {
-                if (Database.find_loans_by_deweyid(copy.deweyIndex));
+                if (!canReserve)
+                {
+                    try
+                    {
+                        loans.add(Database.find_loans_by_deweyid(copy.deweyIndex));
+                    }
+                    catch (DataNotFoundException e)
+                    {
+                        canReserve = true;
+                    }
+                }
             }
         }
         catch (InvalidArgumentException e)
         {
-            throw new SQLClientInfoException(e.getMessage());
+            throw new SQLDataException(e.getMessage());
         }
-                                                                   */
         //If there are no free copies, recall earliest loan (dueDate becomes week today)
+        if (!canReserve)
+        {
+            //Find the earliest loan
+            Loan earliestLoan = new Loan("2", new java.util.Date(), 0, copies.get(0));
+            for (Loan loan: loans)
+            {
+                if (loan.issueDate.before(earliestLoan.issueDate))
+                {
+                    earliestLoan = loan;
+                }
+            }
+            DateTime newDueDate = new DateTime();
+            newDueDate = newDueDate.plusWeeks(1);
+            updateLoan(earliestLoan.borrower_id, earliestLoan.deweyID, new java.util.Date(newDueDate.getMillis()));
+        }
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
@@ -535,6 +563,10 @@ public class Mysql
         if (errorMessage != null)
         {
             throw new SQLException(errorMessage);
+        }
+        if (!canReserve)
+        {
+            throw new LibraryRulesException("Your copy has been reserved, but all copies are on loan. Please wait a week");
         }
     }
 
