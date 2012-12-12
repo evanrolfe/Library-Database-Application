@@ -61,6 +61,17 @@ public class Loan
 		this(deweyID, issueDate, borrower_id, Database.find_copy_by_dewey(deweyID), recalled);
     }
 
+    public Loan(String deweyID, Date issueDate, Date dueDate, int borrowerID, boolean recalled) throws  DataNotFoundException, InvalidArgumentException
+    {
+        this(deweyID, issueDate, dueDate, borrowerID, Database.find_copy_by_dewey(deweyID), recalled);
+    }
+
+    public Loan(String deweyID, Date issueDate, Date dueDate, int borrowerID, Copy copy_by_dewey, boolean recalled)
+    {
+        this(deweyID, issueDate, borrowerID, copy_by_dewey, recalled);
+        this.dueDate = dueDate;
+    }
+
     //OverDue method to calculate if the current instance of copy is overdue. 
     //This checks that the borrower has not held the item on laon longer than the loan period allows.
 	public boolean overDue()
@@ -72,7 +83,9 @@ public class Loan
 		if(now.after(dueDate))
 		{
 			return true;
-		}else{
+		}
+        else
+        {
 			return false;
 		}
 	}
