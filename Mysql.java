@@ -188,15 +188,22 @@ public class Mysql
         }
         if (totalFine>0)
         {
-            throw new LibraryRulesException("You owe a fine of £" + totalFine + ".");
+            throw new LibraryRulesException("You owe a fine of " + totalFine + " GBP.");
         }
     }
 
-    public void renewLoan(int borrowerID, String dewey) throws DataNotFoundException, SQLException, LibraryRulesException
+    public void renewLoan(int borrowerID, String dewey) throws DataNotFoundException, SQLException, LibraryRulesException, InvalidArgumentException
     {
         //VALIDATING
 
         //can only renew if the loan has not been recalled
+
+
+		//ADDED BY EVAN:
+		Borrower b = this.getBorrower(borrowerID);
+
+		if(b.hasLoansOverDue()==true)
+			throw new LibraryRulesException("The borrower id #"+borrowerID+" has an over due loan!");
 
         //and the borrower has not overdue loans
         Borrower borrower = null;
