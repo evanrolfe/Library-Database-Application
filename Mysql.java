@@ -26,8 +26,7 @@ public class Mysql
     public void addLoan(int id, String deweyID, java.util.Date issueDate, java.util.Date dueDate) throws SQLException, LibraryRulesException, DataNotFoundException
     {
         PreparedStatement stmt = null; //Prepared statements mean that it does most of the hard work for us
-        //Generate queries
-        String copiesQuery = "UPDATE copies SET onLoan = ? WHERE deweyID LIKE ?";
+        //Generate query
         String loansQuery = "INSERT INTO loans(borrowerID, deweyID, issueDate, dueDate) " +
                 "VALUES (?, ?, ?, ?);";
         String errorMessage = null;
@@ -79,8 +78,6 @@ public class Mysql
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
-            //Transaction start - since we need to update 2 tables at once.
-            con.setAutoCommit(false);
             stmt = con.prepareStatement(loansQuery);
             //Assign the parameters for the first query
             stmt.setInt(1, id);
@@ -89,16 +86,6 @@ public class Mysql
             stmt.setDate(4, new java.sql.Date(dueDate.getTime()));
             //Execute the query
             stmt.executeUpdate();
-            //Clear and close to be safe.
-            stmt.clearParameters();
-            stmt.close();
-            stmt = con.prepareStatement(copiesQuery);
-            //Assign for the second
-            stmt.setBoolean(1, true);
-            stmt.setString(2, deweyID);
-            //Execute and commit
-            stmt.executeUpdate();
-            con.commit();
         }
         catch (SQLException e)
         {
@@ -132,7 +119,6 @@ public class Mysql
     public void deleteLoan(String dewey) throws SQLException, LibraryRulesException, DataNotFoundException
     {
         String loansQuery = "DELETE FROM loans WHERE deweyID=?";
-        String copiesQuery = "UPDATE copies SET onLoan = ? AND deweyID = ?";
         PreparedStatement stmt = null;
         String errorMessage = null; //Used if we have an error
         //Check if borrower has overdue fines and throw an error if this is the case
@@ -154,19 +140,10 @@ public class Mysql
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
-            con.setAutoCommit(false); //Need to update 2 tables at once, so use transaction
             stmt = con.prepareStatement(loansQuery);
-            //Assign parameters for query 1
+            //Assign parameters for query
             stmt.setString(1, dewey);
             stmt.executeUpdate();
-            stmt.clearParameters(); //Just in case...
-            stmt.close(); //Just in case...
-            stmt = con.prepareStatement(copiesQuery);
-            //Assign for query 2
-            stmt.setBoolean(1, false);
-            stmt.setString(2, dewey);
-            stmt.executeUpdate();
-            con.commit();
         }
         catch (SQLException e)
         {
@@ -802,7 +779,6 @@ public class Mysql
                 {
                     String dewey = result.getString("deweyID");
                     Boolean reference = result.getBoolean("reference");
-                    Boolean onLoan = result.getBoolean("onLoan");
                     int isbn = result.getInt("isbn");
                     int issn = result.getInt("issn");
 
