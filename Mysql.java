@@ -146,6 +146,11 @@ public class Mysql
         {
             throw new SQLDataException(e.getMessage());
         }
+        //Throw an error if it has a fine
+        if (totalFine>0)
+        {
+            throw new LibraryRulesException("You owe a fine of £" + totalFine + ".");
+        }
         try
         {
             Connection con = DriverManager.getConnection(DATABASE_CONNECTION);
@@ -185,10 +190,6 @@ public class Mysql
         if (errorMessage != null)
         {
             throw new SQLException(errorMessage);
-        }
-        if (totalFine>0)
-        {
-            throw new LibraryRulesException("You owe a fine of £" + totalFine + ".");
         }
     }
 
