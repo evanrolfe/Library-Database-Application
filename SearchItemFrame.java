@@ -1,3 +1,6 @@
+/**
+ * This is the frame for searching for a book or periodical. It allows you to search within books or periodicals.
+ */
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -18,22 +21,58 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.ListSelectionModel;
 
-public class GUISearchBP extends JPanel implements ActionListener
+public class SearchItemFrame extends JPanel implements ActionListener
 {
+	/**
+	 * Create title heading for book table.
+	 */
 	private Object[] bookTableHeadings = {"ISBN", "Title", "Author", "Publisher", "Date"};
-	private Object[] periodicalTableHeadings = {"ISSN", "Title", "Volume", "Number", "Publisher", "Date"};
-	private JTable resultsTable;
 	
+	/**
+	 * Create title headings for periodical table.
+	 */
+	private Object[] periodicalTableHeadings = {"ISSN", "Title", "Volume", "Number", "Publisher", "Date"};
+	
+	/**
+	 * Create results table.
+	 */
+	private JTable resultsTable;
+
+	/**
+	 * Create relevant text fields for searching.
+	 */
 	private JTextField titleTextField, authorTextField, publisherTextField, volumeTextField, numberTextField, dateTextField;
+	
+	/**
+	 * Create radio buttons to select search in periodicals or books.
+	 */
 	private JRadioButton radioInBooks, radioInPeriodicals;
+	
+	/**
+	 * Create search button
+	 */
 	private JButton buttonSearch;
+	
+	/**
+	 * Groups radio buttons together so any one can be selected.
+	 */
 	private final ButtonGroup buttonGroup = new ButtonGroup();
+	
+	/**
+	 * Create array list to store search results.
+	 */
 	
 	private ArrayList<Item> searchResults;
 		
+	/**
+	 * Creates spring layout.
+	 */
 	SpringLayout springLayout;
-	
-	public GUISearchBP() 
+
+/**
+ * Initialise the panel and create the relevant text fields, buttons and labels.
+ */
+	public SearchItemFrame() 
 	{
 		springLayout = new SpringLayout();
 		setLayout(springLayout);
@@ -161,13 +200,16 @@ public class GUISearchBP extends JPanel implements ActionListener
 		
 		JScrollPane resultsScroll = new JScrollPane(resultsTable);
 		springLayout.putConstraint(SpringLayout.SOUTH, resultsScroll, 0, SpringLayout.SOUTH, radioInBooks);
-		springLayout.putConstraint(SpringLayout.EAST, resultsScroll, -84, SpringLayout.EAST, this);
+		springLayout.putConstraint(SpringLayout.EAST, resultsScroll, -10, SpringLayout.EAST, this);
 		resultsScroll.setBorder(new EmptyBorder(0, 40, 0, 0));
 		springLayout.putConstraint(SpringLayout.NORTH, resultsScroll, 0, SpringLayout.NORTH, titleTextField);
 		springLayout.putConstraint(SpringLayout.WEST, resultsScroll, 6, SpringLayout.EAST, titleTextField);
 		add(resultsScroll);
 	}
 	
+	/**
+	 * Searches for the book/ periodical using the given data and throws relevant error messages.
+	 */
 	public void search()
 	{
 		Hashtable<String, Object> searchData = new Hashtable<String, Object>();
@@ -222,16 +264,19 @@ public class GUISearchBP extends JPanel implements ActionListener
 		} 
 		catch (InvalidArgumentException e) 
 		{
-			// TODO 
+			new MessageFrame(e.getMessage());
 		} 
 		catch (DataNotFoundException e)
 		{
-			// TODO
+			new MessageFrame(e.getMessage());
 		}
 		
 		populateResults();
 	}
 	
+	/**
+	 * This uses the table initialised earlier and populates it with the search results.
+	 */
 	public void populateResults()
 	{	
 		DefaultTableModel tableModel = (DefaultTableModel) resultsTable.getModel();

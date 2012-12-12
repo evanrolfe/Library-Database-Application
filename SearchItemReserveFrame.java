@@ -1,3 +1,8 @@
+/**
+ * A form to search for books or periodicals and the borrower can try to 
+ * reserve an item from the search results, which are displayed in a table.
+ */
+
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -10,35 +15,76 @@ import javax.swing.JRadioButton;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 
 import javax.swing.ButtonGroup;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.ListSelectionModel;
 
-public class GUISearchBPReserve extends JPanel implements ActionListener, TableModelListener
+public class SearchItemReserveFrame extends JPanel implements ActionListener, ListSelectionListener
 {
 
+	/**
+	 * Create heading for book search table.
+	 */
 	private Object[] bookTableHeadings = {"ISBN", "Title", "Author", "Publisher", "Date"};
+	/**
+	 * Create heading for periodical search table.
+	 */
 	private Object[] periodicalTableHeadings = {"ISSN", "Title", "Volume", "Number", "Publisher", "Date"};
+	
+	/**
+	 * Create table to store results.
+	 */
 	private JTable resultsTable;
+
+	/**
+	 * Int index keeps track of row selected.
+	 */
 	private int index;
 	
+	/**
+	 * Creates relevant text fields for searching for information.
+	 */
 	private JTextField titleTextField, authorTextField, publisherTextField, volumeTextField, numberTextField, dateTextField, memberIdTextField;
+	
+	/**
+	 * Create radio button to select whether seraching in books or periodicals.
+	 */
 	private JRadioButton radioInBooks, radioInPeriodicals;
+	
+	/**
+	 * Create search button to press when searching for results.
+	 */
 	private JButton buttonSearch,buttonReserve;
+	
+	/**
+	 * Group radio buttons together so anyone can be selected.
+	 */
 	private final ButtonGroup buttonGroup = new ButtonGroup();
 	
+	/**
+	 * Create array list to store search results.
+	 */
 	private ArrayList<Item> searchResults;
+	
+	/**
+	 * Store database abstraction layer.
+	 */
+	private Mysql db = new Mysql();
 		
 	SpringLayout springLayout;
 	
-	public GUISearchBPReserve() 
+	/**
+	 * Initialises the JPanel.
+	 */
+	public SearchItemReserveFrame() 
 	{
 		springLayout = new SpringLayout();
 		setLayout(springLayout);
@@ -147,6 +193,7 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 		add(dateTextField);
 		dateTextField.setColumns(10);
 		
+		// A different table is displayed depending on whether searching for books or for periodicals
 		DefaultTableModel tableModel;
 		if (radioInBooks.isSelected())
 		{
@@ -162,12 +209,12 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 		resultsTable.setAutoCreateRowSorter(true);
 		resultsTable.setShowVerticalLines(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		resultsTable.getModel().addTableModelListener(this);
+		resultsTable.getSelectionModel().addListSelectionListener(this);
 		resultsTable.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		
 		JScrollPane resultsScroll = new JScrollPane(resultsTable);
 		springLayout.putConstraint(SpringLayout.SOUTH, resultsScroll, 0, SpringLayout.SOUTH, radioInBooks);
-		springLayout.putConstraint(SpringLayout.EAST, resultsScroll, -84, SpringLayout.EAST, this);
+		springLayout.putConstraint(SpringLayout.EAST, resultsScroll, -10, SpringLayout.EAST, this);
 		resultsScroll.setBorder(new EmptyBorder(0, 40, 0, 0));
 		springLayout.putConstraint(SpringLayout.NORTH, resultsScroll, 0, SpringLayout.NORTH, titleTextField);
 		springLayout.putConstraint(SpringLayout.WEST, resultsScroll, 6, SpringLayout.EAST, titleTextField);
@@ -193,6 +240,9 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 		memberIdTextField.setColumns(10);
 	}
 	
+	/**
+	 * Displays the search results in a table.
+	 */
 	public void populateResults()
 	{	
 		DefaultTableModel tableModel = (DefaultTableModel) resultsTable.getModel();
@@ -229,6 +279,9 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 		
 	}
 	
+	/**
+	 * Searches the database for books or periodicals with any combination of fields.
+	 */
 	public void searchForData()
 	{
 		Hashtable<String, Object> searchData = new Hashtable<String, Object>();
@@ -283,54 +336,58 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 		} 
 		catch (InvalidArgumentException e) 
 		{
-			// TODO 
+			new MessageFrame(e.getMessage());
 		} 
 		catch (DataNotFoundException e)
 		{
-			// TODO
+			new MessageFrame(e.getMessage());
 		}
 		
 		populateResults();
 	}
 	
+	/**
+	 * User can reserve a selected item from the search results, using their membership number as well.
+	 */
 	public void reserveItem()
 	{
-		// not sure if these if statements will work i.e. if list of books but periodicals selected
-		if (radioInBooks.isSelected())
+		Hashtable<String,Object> details = new Hashtable<String,Object>();
+		details.put("borrowerID",memberIdTextField.getText());
+
+		String number = (String)resultsTable.getValueAt(index, 0);
+		// to test is the item is a book or periodical
+		if (number.length() > 9)
 		{
-			String isbn = (String)resultsTable.getValueAt(index, 0);
-			String title = (String)resultsTable.getValueAt(index, 1);
-			String author = (String)resultsTable.getValueAt(index, 2);
-			String publisher = (String)resultsTable.getValueAt(index, 3);
-			Date date = (Date)resultsTable.getValueAt(index, 4);
-			
-			Item item = new Item(isbn, title, author, publisher, date);
-			Date today = new Date();
-			Reservation res = new Reservation(today, Integer.parseInt(memberIdTextField.getText()), item);
-			
-			// TODO
+			details.put("isbn", (String)resultsTable.getValueAt(index, 0));
 		}
 		else
 		{
-			String issn = (String)resultsTable.getValueAt(index, 0);
-			String title = (String)resultsTable.getValueAt(index, 1);
-			String publisher = (String)resultsTable.getValueAt(index, 2);
-			int volume = Integer.parseInt((String) resultsTable.getValueAt(index, 3));
-			int number = Integer.parseInt((String)resultsTable.getValueAt(index, 4));
-			Date date = (Date)resultsTable.getValueAt(index, 5);
-			
-			Item item = new Item(issn, title, volume, number, publisher, date);
-			Date today = new Date();
-			Reservation res = new Reservation(today, Integer.parseInt(memberIdTextField.getText()), item);
-			
-			// TODO
+			details.put("issn",(String)resultsTable.getValueAt(index, 0));
 		}
 		
-		for (int i = 0; i < resultsTable.getColumnCount(); i++)
+		Date today = new Date();
+		details.put("date",today);
+
+		try 
 		{
-			resultsTable.getValueAt(index, i);
+			db.addReservation(details);
+			new MessageFrame("Reservation created.");
+		} 
+		catch (SQLException e) 
+		{
+			new MessageFrame(e.getMessage());
+		} 
+		catch (LibraryRulesException e) 
+		{
+			new MessageFrame(e.getMessage());
+		} 
+		catch (DataNotFoundException e) 
+		{
+			new MessageFrame(e.getMessage());
 		}
-	}
+
+		
+}
 
 	@Override
 	public void actionPerformed(ActionEvent e) 
@@ -343,7 +400,11 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 		}
 		else if (e.getSource() == buttonReserve)
 		{
-			reserveItem();
+			if(index > -1)
+			{
+				reserveItem();
+		
+			}
 		}
 		else if (e.getSource() == radioInBooks)
 		{
@@ -356,10 +417,11 @@ public class GUISearchBPReserve extends JPanel implements ActionListener, TableM
 			tableModel = new DefaultTableModel(results, periodicalTableHeadings);
 		}
 	}
-
+	
 	@Override
-	public void tableChanged(TableModelEvent e) 
+	public void valueChanged(ListSelectionEvent e) 
 	{
-		index = resultsTable.getSelectedRow();
+			index = resultsTable.getSelectedRow();
+
 	}
 }
