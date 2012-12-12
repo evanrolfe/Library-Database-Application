@@ -1,25 +1,58 @@
 import java.util.*;
 
-//Item class. This deals with construction of item object and methods related to the item object.
+/**
+ * Item class. This deals with construction of item object and methods related to the item object. *
+ */
 public class Item
 {
-	//Initialise the item attributes specific to books and periodicals respectively.
+	/**
+	 * The isbn of a book instance of Item
+	 */
     public String isbn;
+    
+    /**
+     * The issn of a periodical instance of Item
+     */
     public String issn;
 
-	//initialise item attributes which are present in both books and periodicals.
+	/**
+	 * The title of the Item
+	 */
     public String title;
+    
+    /**
+     * The publisher of the Item
+     */
     public String publisher;
+    
+    /**
+     * The date the Item was published
+     */
     public Date date;
 
-	//Initialise author attribute for book items.
+	/**
+	 * The author of the Item
+	 */
     public String author;
 
-	//Initialise volume and number attributes for periodical items.
+	/**
+	 * The volume of a periodical instance
+	 */
     public int volume;
+    
+    /**
+     * The number of a periodical instance
+     */
     public int number;
 
-	//Item constructor to create an item which is specifically a book.
+	/**
+	 * Item constructor to create an item which is specifically a book.
+	 * @param isbn The isbn of the book
+	 * @param title The title of the book
+	 * @param author The author of the book
+	 * @param publisher The publisher of the book
+	 * @param date The date of the book
+	 */
     public Item(String isbn, String title, String author, String publisher, Date date)
     {
         this.isbn = isbn;
@@ -29,7 +62,15 @@ public class Item
         this.date = date;
     }
 
-	//Item Constructor to create a item which is specifically a periodical
+	/**
+	 * Item Constructor to create a item which is specifically a periodical
+	 * @param issn The issn of the periodical
+	 * @param title The title of the periodical
+	 * @param volume The volume of the periodical
+	 * @param number The number of the periodical
+	 * @param publisher The publisher of the periodical
+	 * @param date The date of the periodical
+	 */
     public Item(String issn, String title, int volume, int number, String publisher, Date date)
     {
         this.issn = issn;
@@ -40,7 +81,12 @@ public class Item
         this.number = number;
     }
 
-    //Method to check if the current instance of item is reserved by any borrower.
+    /**
+     * Method to check if the current instance of item is reserved by any borrower.
+     * @return True if the item is reserved, false otherwise.
+     * @throws DataNotFoundException Thrown if there are no reservations
+     * @throws InvalidArgumentException Thrown if the search options are invalid
+     */
 	public boolean isReserved() throws DataNotFoundException, InvalidArgumentException
 	{
 		//Finds all reservations associtated to the current instance of item.
@@ -55,7 +101,12 @@ public class Item
 		}
 	}
 
-	//Method to get all copies associated with current instance of item.
+	/**
+	 * Method to get all copies associated with current instance of item.
+	 * @return An ArraryList of Copy objects
+	 * @throws DataNotFoundException Thrown if there are no Copy objects
+	 * @throws InvalidArgumentException Thrown if the search options are invalid
+	 */
 	public ArrayList<Copy> getCopies() throws DataNotFoundException, InvalidArgumentException
 	{
 		//Array list of copies which will be returned from the method containing all copies of the current instance of item.
@@ -73,7 +124,10 @@ public class Item
 		return copies;
 	}
 
-	//Method to retirve the type of the current instance of item, which is either book or periodical.
+	/**
+	 * Method to retrieve the type of the current instance of item.
+	 * @return the type of the item. Either "Book" or "periodical"
+	 */
 	public String getType()
 	{
 		//Check if the item contains an issn or an isbn and classifies the item as a periodical or book respectively.
@@ -88,7 +142,9 @@ public class Item
 		}
 	}
 
-	//Method to convert the current item instance into a string. This is done for displaying the item on screen
+	/**
+	 * Method to convert the current item instance into a string. This is done for displaying the item on screen
+	 */
 	public String toString()
 	{
 			//Checks if the item is a book or periodical to correctly convert it to a string.

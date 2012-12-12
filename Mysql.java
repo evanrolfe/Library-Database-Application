@@ -9,6 +9,9 @@ import java.util.Date;
 javac -cp joda.jar:. *.java && java -cp connector.jar:joda.jar:. MysqlTest
  */
 
+/**
+ * This handles all the mySQL interactions.
+ */
 public class Mysql
 {
     /**
@@ -62,17 +65,17 @@ public class Mysql
 
 				for(Reservation reservation : reservations)
 				{
-					if(earliestReservation==null || earliestReservation.reserveDate.getTime() < reservation.reserveDate.getTime())
+					if (earliestReservation==null || earliestReservation.reserveDate.getTime() < reservation.reserveDate.getTime())
 						earliestReservation=reservation;
 				}
 
-				if(earliestReservation.borrower_id!=id)
+				if (earliestReservation.borrower_id!=id)
 					throw new LibraryRulesException("That has already been reserved by another borrower!");
 			}
 		}
         catch(InvalidArgumentException e1)
 		{
-			
+            throw new SQLException(e1.getMessage());
 		}
 
         try
@@ -170,6 +173,14 @@ public class Mysql
         }
     }
 
+    /**
+     * Renews a loan, according to the specified rules.
+     * @param borrowerID The id of the borrower who is renewing a loan
+     * @param dewey The dewey id of the copy that is being renewed
+     * @throws DataNotFoundException If something isn't found in the database
+     * @throws SQLException If there's an SQL issue
+     * @throws LibraryRulesException If the rules are not kept to
+     */
     public void renewLoan(int borrowerID, String dewey) throws DataNotFoundException, SQLException, LibraryRulesException
     {
         //VALIDATING
@@ -215,6 +226,7 @@ public class Mysql
      * @param dewey The dewey id of the loaned copy
      * @param newDueDate The new dueDate for the loan
      * @param recall If the loan is to be recalled
+     * @throws SQLException If there's a problem connecting to the database
      */
     private void updateLoan(int borrowerID, String dewey, java.util.Date newDueDate, boolean recall) throws SQLException
     {
@@ -264,6 +276,14 @@ public class Mysql
     //==============================================================
 // BORROWERS GETTER METHODS
 //==============================================================
+
+    /**
+     * Finds all the borrowers in the database
+     * @param params The various options for searching
+     * @return An arraylist of borrowers
+     * @throws DataNotFoundException If there is nothing in the database
+     * @throws InvalidArgumentException If the arguments given were invalid
+     */
     public ArrayList<Borrower> getBorrowers(Hashtable<String,Object> params) throws DataNotFoundException, InvalidArgumentException
     {
         ArrayList<Object> objects = this.getObjects(params, "borrowers");
@@ -278,11 +298,24 @@ public class Mysql
         return borrowers;
     }
 
+    /**
+     * Gets all the borrowers
+     * @return An array list of all the borrowers
+     * @throws DataNotFoundException If there is nothing in the database
+     * @throws InvalidArgumentException If the arguments given were invalid
+     */
     public ArrayList<Borrower> getBorrowers() throws DataNotFoundException, InvalidArgumentException
     {
         return this.getBorrowers(new Hashtable<String,Object>());
     }
 
+    /**
+     * Gets a single borrower
+     * @param id The id of a borrower
+     * @return A single Borrower object
+     * @throws DataNotFoundException If that borrower doesn't exist
+     * @throws InvalidArgumentException If the arguments given were invalid
+     */
     public Borrower getBorrower(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
@@ -302,12 +335,19 @@ public class Mysql
 // BOOKS GETTER METHODS
 //==============================================================
 
+    /**
+     * Gets books from the database
+     * @param params The search options
+     * @return An array list of the books
+     * @throws DataNotFoundException If there are no details in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Item> getBooks(Hashtable<String, Object> params) throws DataNotFoundException, InvalidArgumentException
     {
         ArrayList<Object> objects = this.getObjects(params, "books");
         ArrayList<Item> books = new ArrayList<Item>();
 
-        //Cast it as a Loan object
+        //Cast it as an item object
         for (Object object : objects)
         {
             books.add((Item) object);
@@ -316,17 +356,28 @@ public class Mysql
         return books;
     }
 
+    /**
+     * Gets all the books from the database
+     * @return An array list of books
+     * @throws DataNotFoundException If there are no details in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Item> getBooks() throws DataNotFoundException, InvalidArgumentException
     {
         return this.getBooks(new Hashtable<String,Object>());
     }
 
+    /**
+     * Gets a certain book
+     * @param isbn The isbn of the book to search from
+     * @return An item object relating to book.
+     * @throws DataNotFoundException If that isbn doesn't exist
+     * @throws InvalidArgumentException If the search options are invalid
+     */
     public Item getBook(int isbn) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
         params.put("isbn", isbn);
-
-
         Item item;
         try
         {
@@ -343,6 +394,13 @@ public class Mysql
 // PERIODICALS GETTER METHODS
 //==============================================================
 
+    /**
+     * Gets periodicals from the database
+     * @param params The search options
+     * @return An array list of the periodicals
+     * @throws DataNotFoundException If there are no details in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Item> getPeriodicals(Hashtable<String, Object> params) throws DataNotFoundException, InvalidArgumentException
     {
         ArrayList<Object> objects = this.getObjects(params, "periodicals");
@@ -357,21 +415,34 @@ public class Mysql
         return periodicals;
     }
 
+    /**
+     * Gets all the periodicals
+     * @return An array list of the periodicals
+     * @throws DataNotFoundException If there are no details in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Item> getPeriodicals() throws DataNotFoundException, InvalidArgumentException
     {
         return this.getPeriodicals(new Hashtable<String,Object>());
     }
 
+    /**
+     * Gets a specific periodical
+     * @param issn The issn of the periodical
+     * @return An item object relating to that periodical
+     * @throws DataNotFoundException If there is no periodical with that name
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public Item getPeriodical(int issn) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
         params.put("issn", issn);
-
         Item item;
         try
         {
             item = this.getPeriodicals(params).get(0);
-        }catch(IndexOutOfBoundsException e)
+        }
+        catch(IndexOutOfBoundsException e)
         {
             throw new DataNotFoundException("No periodical was found with the issn:"+issn);
         }
@@ -383,6 +454,13 @@ public class Mysql
 // COPIES GETTER METHODS
 //==============================================================
 
+    /**
+     * Gets copies from the database
+     * @param params The search options
+     * @return An array list of copies
+     * @throws DataNotFoundException If no copies are in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Copy> getCopies(Hashtable<String, Object> params) throws DataNotFoundException, InvalidArgumentException
     {
         ArrayList<Object> objects = this.getObjects(params, "copies");
@@ -397,11 +475,24 @@ public class Mysql
         return copies;
     }
 
+    /**
+     * Gets all the copies from the database
+     * @return An array list of the copies
+     * @throws DataNotFoundException If there are no loans in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Copy> getCopies() throws DataNotFoundException, InvalidArgumentException
     {
         return this.getCopies(new Hashtable<String,Object>());
     }
 
+    /**
+     * Gets a certain copy from the database
+     * @param deweyID The dewey id of the copy
+     * @return A single copy object
+     * @throws DataNotFoundException If that deweyID doesn't relate to any copies in the database
+     * @throws InvalidArgumentException If the serach options were invalid
+     */
     public Copy getCopy(String deweyID) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
@@ -421,6 +512,14 @@ public class Mysql
     //==============================================================
 // LOANS GETTER METHODS
 //==============================================================
+
+    /**
+     * Gets some loans from the database
+     * @param params The search options
+     * @return An array list of loans
+     * @throws DataNotFoundException If there were no loans in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Loan> getLoans(Hashtable<String, Object> params) throws DataNotFoundException, InvalidArgumentException
     {
         ArrayList<Object> objects = this.getObjects(params, "loans");
@@ -435,11 +534,24 @@ public class Mysql
         return loans;
     }
 
+    /**
+     * Gets all the loans
+     * @return An array list of loans from the database
+     * @throws DataNotFoundException If there were no loans in the database
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public ArrayList<Loan> getLoans() throws DataNotFoundException, InvalidArgumentException
     {
         return this.getLoans(new Hashtable<String,Object>());
     }
 
+    /**
+     * Gets a loan from the database
+     * @param id The id of a borrower
+     * @return The first loan that the borrower has
+     * @throws DataNotFoundException If there were no loans
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public Loan getLoan(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
@@ -449,7 +561,8 @@ public class Mysql
         try
         {
             loan = this.getLoans(params).get(0);
-        }catch(IndexOutOfBoundsException e)
+        }
+        catch(IndexOutOfBoundsException e)
         {
             throw new DataNotFoundException("No loan was found with the id:"+id);
         }
@@ -459,6 +572,14 @@ public class Mysql
 //==============================================================
 // RESERVATIONS GETTER METHODS
 //==============================================================
+
+    /**
+     * Gets some reservations from the database
+     * @param params The search options
+     * @return An array list of reservations from the database
+     * @throws DataNotFoundException If there were no reservations in the database
+     * @throws InvalidArgumentException If the options were invalid
+     */
     public ArrayList<Reservation> getReservations(Hashtable<String, Object> params) throws DataNotFoundException, InvalidArgumentException
     {
         ArrayList<Object> objects = this.getObjects(params, "reservations");
@@ -473,11 +594,24 @@ public class Mysql
         return reservations;
     }
 
+    /**
+     * Gets all the reservations from the database
+     * @return An array list of all the reservations in the database
+     * @throws DataNotFoundException If there were no reservations in the database
+     * @throws InvalidArgumentException If the options were invalid
+     */
     public ArrayList<Reservation> getReservations() throws DataNotFoundException, InvalidArgumentException
     {
         return this.getReservations(new Hashtable<String,Object>());
     }
 
+    /**
+     * Returns a reservation from the database for a borrower
+     * @param id The id of a borrower
+     * @return The first reservation found for that borrower
+     * @throws DataNotFoundException If there were no reservations for that borrower
+     * @throws InvalidArgumentException If the search options were invalid
+     */
     public Reservation getReservation(int id) throws DataNotFoundException, InvalidArgumentException
     {
         Hashtable<String,Object> params = new Hashtable<String,Object>();
@@ -692,6 +826,12 @@ public class Mysql
 //==============================================================
 // DATABASE CORE 
 //==============================================================
+    /**
+     * Select rows from a table with optional search parameters and return an arraylist of objects (which are instantiated depending on which table was called i.e. if table `loans` is called then it returns an arraylist of Loan objects.
+     * @return ArrayList<Object> the objects that are created from the data from mysql
+     * @throws DataNotFoundException if no data was found
+     * @throws InvalidArgumentException if a search column specified in the params is not a valid column in the mysql table
+     */
     private ArrayList<Object> getObjects(Hashtable<String,Object> params, String table_name) throws DataNotFoundException, InvalidArgumentException
     {
         ResultSet result = null;

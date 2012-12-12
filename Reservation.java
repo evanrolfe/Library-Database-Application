@@ -1,23 +1,42 @@
 import java.util.Date;
 
 /**
- * Created with IntelliJ IDEA.
- * User: paddy
- * Date: 28/11/12
- * Time: 13:49
-*/
-//Reservation class which handles creation of reservation objects and methods manipulating current instances of reservation.
+ * Reservation class which handles creation of reservation objects and methods manipulating current instances of reservation.
+ */
 public class Reservation 
 {
-	//Initialise the reservation attributes.
+	/**
+    * The date the item was reserved.
+    */
     public Date reserveDate;
+    
+    /**
+    * The id of the borrower
+    */
 	public int borrower_id;
+	
+	/**
+	 * The isbn belonging to a book.
+	 */
 	public String book_isbn;
+	
+	/**
+	 *  The issn number for a periodical
+	 */
 	public String periodical_issn;
 
+	
+	/**
+	 * The item which is being reserved.
+	 */
 	public Item item;
 
-	//Reservation constructer which creates a reservation object given the specified parameters.
+	/**
+	 * Reservation constructor which creates a reservation object given the specified parameters.
+	 * @param reserveDate The data the item was reserved.
+	 * @param borrower_id The identification number of the borrower.
+	 * @param item The item which is being reserved.
+	 */
     public Reservation(Date reserveDate, int borrower_id, Item item)
     {
     	//Match the parameters given to the reservation attributes.
@@ -35,6 +54,7 @@ public class Reservation
 		}
     }
 
+    
 	public String toString()
 	{
 		return "Reservation: borrower_id: "+this.borrower_id+"\t date:"+reserveDate;

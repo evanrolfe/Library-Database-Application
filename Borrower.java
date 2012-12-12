@@ -118,7 +118,8 @@ public class Borrower
 		{
 			//Use this instance of borrower to find the corresponding loans using static database class method.
 			return Database.find_loans(this.id);
-		}catch(Exception e)
+		}
+        catch(Exception e)
 		{
 			return new ArrayList<Loan>();
 		}
