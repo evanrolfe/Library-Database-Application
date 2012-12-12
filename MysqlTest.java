@@ -108,7 +108,7 @@ public class MysqlTest
 	-copy must be on loan
 	-if Loan.getFine() > 0 then display popup with fines, then still delete the loan
 */
-
+/*
         try
         {
             db.deleteLoan("823.452.767.5");
@@ -198,7 +198,7 @@ public class MysqlTest
 
 		System.out.println(db.getBorrower(1000001));
 		System.out.println("=====================================");
-
+*/
 
 		//TESTING LOANS
 		System.out.println("TESTING LOANS\n");
@@ -206,13 +206,12 @@ public class MysqlTest
 
 		ArrayList<Loan> loans = db.getLoans();
 
-
 		for(int i=0; i<loans.size(); i++)
 		{
 			System.out.println(loans.get(i));
 		}
 
-		System.out.println(db.getCopy("524.124.125.5"));
+		//System.out.println(db.getCopy("524.124.125.5"));
 	}	
 
 }
